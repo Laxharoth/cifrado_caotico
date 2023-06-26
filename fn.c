@@ -1,7 +1,6 @@
 #ifndef FN_C
 #define FN_C
 #include <math.h>
-#include <openssl/sha.h>
 #include <stdlib.h>
 #include <string.h>
 #include <limits.h>
@@ -71,10 +70,8 @@ inline unsigned long long rotr64(unsigned long long value, unsigned int count) {
 }
 
 #define RenyiMap(X, β, λ) (X * β) + (X >> λ)
-#define Β 5
-#define Λ 2
 
-unsigned long long renyi_array_generator(unsigned long long X[8]) {
+unsigned long long renyi_array_generator(unsigned long long X[8], const unsigned int Β, const unsigned int Λ) {
     typedef unsigned long long ull;
     typedef unsigned char byte;
     ull rn1, rn2, avr;
@@ -84,7 +81,7 @@ unsigned long long renyi_array_generator(unsigned long long X[8]) {
 
     for (Xi = X, i = 0; i < 4; i++, Xi++) {
         *Xi = RenyiMap(*Xi, Β, Λ);
-        rn1 += *Xi;
+        rn1 ^= *Xi;
     }
 
     byte *rotation = (unsigned char *)(void *)&rn1;
@@ -94,16 +91,16 @@ unsigned long long renyi_array_generator(unsigned long long X[8]) {
         *Xi = RenyiMap(*Xi, Β, Λ);
         *Xi = rotl64(*Xi, (*rotation) & 63);
         *Xi ^= 1 << ((*bit_toggle) & 63);
-        rn2 += (*Xi)>>2;
+        rn2 ^= (*Xi)>>2;
     }
-    avr = (rn1 + rn2) >> 3;
+    avr = (rn1 ^ rn2);
     for (Xi = X, i = 0; i < 8; i++, Xi++) {
         *Xi = ((*Xi * 3) + avr) >> 2;
     }
     return rn2;
 }
 
-unsigned long long renyi_array_2(unsigned long long X[8]){
+unsigned long long renyi_array_2(unsigned long long X[10], const unsigned int Β, const unsigned int Λ){
     typedef unsigned long long ull;
     typedef unsigned char byte;
     ull rn1, rn2, avr;
@@ -115,7 +112,6 @@ unsigned long long renyi_array_2(unsigned long long X[8]){
         *Xi = RenyiMap(*Xi, Β, Λ);
         rn1 += *Xi;
     }
-    unsigned char max_divisible = 252;
     
     byte *selector1 = (byte*)(Xi), *selector2 = (byte*)(Xi + 1);
     byte index_1, index_2;
@@ -124,8 +120,8 @@ unsigned long long renyi_array_2(unsigned long long X[8]){
     for(unsigned i = 0; i < 6; i++) {
         index_1 = *selector1++;
         index_2 = *selector2++;
-        index_1 = index_1 %252%6;
-        index_2 = index_2 %252%6;
+        index_1 = index_1 & 7;
+        index_2 = index_2 & 7;
 
         rn1 += Xi[2 + index_1];
         rn2 += Xi[2 + index_2];

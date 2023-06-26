@@ -5,6 +5,7 @@
 
 #include <openssl/sha.h>
 #include <limits.h>
+#include <stdio.h>
 
 #define RENYIMAP(X, beta, lambda) (X*beta) + (X>>lambda)
 void RenyiMap(){

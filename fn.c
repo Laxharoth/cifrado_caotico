@@ -1,9 +1,9 @@
 #ifndef FN_C
 #define FN_C
+#include <limits.h>
 #include <math.h>
 #include <stdlib.h>
 #include <string.h>
-#include <limits.h>
 
 #define Π 3.141592653589793
 double logistic_map(double x, double μ) { return 4 * μ * x * (1 - x); }
@@ -71,7 +71,8 @@ inline unsigned long long rotr64(unsigned long long value, unsigned int count) {
 
 #define RenyiMap(X, β, λ) (X * β) + (X >> λ)
 
-unsigned long long renyi_array_generator(unsigned long long X[8], const unsigned int Β, const unsigned int Λ) {
+void renyi_array_generator(unsigned long long X[8], const unsigned int Β,
+                           const unsigned int Λ) {
     typedef unsigned long long ull;
     typedef unsigned char byte;
     ull rn1, rn2, avr;
@@ -91,45 +92,33 @@ unsigned long long renyi_array_generator(unsigned long long X[8], const unsigned
         *Xi = RenyiMap(*Xi, Β, Λ);
         *Xi = rotl64(*Xi, (*rotation) & 63);
         *Xi ^= 1 << ((*bit_toggle) & 63);
-        rn2 ^= (*Xi)>>2;
+        rn2 ^= *Xi;
     }
     avr = (rn1 ^ rn2);
     for (Xi = X, i = 0; i < 8; i++, Xi++) {
-        *Xi = ((*Xi * 3) + avr) >> 2;
+        *Xi = (*Xi * 3) + (avr & 0b11111111);
     }
-    return rn2;
 }
 
-unsigned long long renyi_array_2(unsigned long long X[10], const unsigned int Β, const unsigned int Λ){
+unsigned long long renyi_array_2(unsigned long long X[10], const unsigned int Β,
+                                 const unsigned int Λ) {
     typedef unsigned long long ull;
     typedef unsigned char byte;
-    ull rn1, rn2, avr;
-    rn1 = rn2 = 0;
-    unsigned i = 0;
-    ull *Xi;
+    const byte NUMBER_OF_MAPS = 8;
+    const byte MOD_8_BIT_OPERATION_CONST = 0B00000111;
+    const byte MOD_255_BIT_OPERATION_CONST = 0B11111111;
+    static byte index_selector = 0;
 
-    for (Xi = X, i = 0; i < 4; i++, Xi++) {
-        *Xi = RenyiMap(*Xi, Β, Λ);
-        rn1 += *Xi;
-    }
-    
-    byte *selector1 = (byte*)(Xi), *selector2 = (byte*)(Xi + 1);
-    byte index_1, index_2;
-    selector1++, selector2++;
+    index_selector &= sizeof(ull) * NUMBER_OF_MAPS;
 
-    for(unsigned i = 0; i < 6; i++) {
-        index_1 = *selector1++;
-        index_2 = *selector2++;
-        index_1 = index_1 & 7;
-        index_2 = index_2 & 7;
+    byte *selector = (byte *)(X);
+    const byte index_1 = selector[index_selector++] & MOD_8_BIT_OPERATION_CONST,
+               index_2 = selector[index_selector++] & MOD_8_BIT_OPERATION_CONST;
+    const ull Y = X[index_1] + X[index_2];
 
-        rn1 += Xi[2 + index_1];
-        rn2 += Xi[2 + index_2];
-    }
-    avr = (rn1 + rn2)>>1;
-    for (Xi = X, i = 0; i < 8; i++, Xi++) {
-        *Xi = ((*Xi * 3) + avr) >> 2;
-    }
-    return rn1^rn2;
+    X[index_1] = RenyiMap(X[index_1] + (Y & MOD_255_BIT_OPERATION_CONST), Β, Λ);
+    X[index_2] = RenyiMap(X[index_1] + (Y & MOD_255_BIT_OPERATION_CONST), Β, Λ);
+
+    return Y;
 }
 #endif /* FN_C */

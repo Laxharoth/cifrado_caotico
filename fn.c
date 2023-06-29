@@ -107,6 +107,7 @@ unsigned long long renyi_array_2(unsigned long long X[10], const unsigned int Β
     const byte NUMBER_OF_MAPS = 8;
     const byte MOD_8_BIT_OPERATION_CONST = 0B00000111;
     const byte MOD_255_BIT_OPERATION_CONST = 0B11111111;
+    const ull mask = 0x0000FFFF;
     static byte index_selector = 0;
 
     index_selector &= sizeof(ull) * NUMBER_OF_MAPS;
@@ -114,10 +115,10 @@ unsigned long long renyi_array_2(unsigned long long X[10], const unsigned int Β
     byte *selector = (byte *)(X);
     const byte index_1 = selector[index_selector++] & MOD_8_BIT_OPERATION_CONST,
                index_2 = selector[index_selector++] & MOD_8_BIT_OPERATION_CONST;
-    const ull Y = X[index_1] + X[index_2];
+    const ull Y = (X[index_1] & mask) | (X[index_2] & ~mask);
 
-    X[index_1] = RenyiMap(X[index_1] + (Y & MOD_255_BIT_OPERATION_CONST), Β, Λ);
-    X[index_2] = RenyiMap(X[index_1] + (Y & MOD_255_BIT_OPERATION_CONST), Β, Λ);
+    X[index_1] = RenyiMap((X[index_1] + (Y & MOD_255_BIT_OPERATION_CONST)), Β, Λ);
+    X[index_2] = RenyiMap((X[index_1] + (Y & MOD_255_BIT_OPERATION_CONST)), Β, Λ);
 
     return Y;
 }

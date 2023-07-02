@@ -120,6 +120,31 @@ unsigned long long renyi_array_2(unsigned long long X[10], const unsigned int Β
     X[index_1] = RenyiMap((X[index_1] + (Y & MOD_255_BIT_OPERATION_CONST)), Β, Λ);
     X[index_2] = RenyiMap((X[index_1] + (Y & MOD_255_BIT_OPERATION_CONST)), Β, Λ);
 
+unsigned long long renyi_array_random_byte_select_with_replace(
+    unsigned long long X[NUMBER_OF_CAHOTIC_MAPS], const unsigned int β,
+    const unsigned int λ) {
+    typedef unsigned long long ull;
+    typedef unsigned char byte;
+    static byte index_selector = 0;
+    const byte MOD_8_BIT_OPERATION_CONST = 0B00000111;
+    const byte MOD_64_BIT_OPERATION_CONST = 0B00111111;
+    const byte MOD_MASK = 0XFF;
+    byte byte_index_positions[sizeof(ull)];
+    ull Y;
+    byte *ptr_YasBytes = (byte *)(void *)&Y;
+    byte *ptr_XasBytes = (byte *)(void *)&X;
+    byte i;
+    for (i = 0; i < sizeof(ull); i++) {
+        byte_index_positions[i] = index_selector;
+        ptr_YasBytes[i] = ptr_XasBytes[index_selector];
+        index_selector = (ptr_YasBytes[i] & MOD_64_BIT_OPERATION_CONST);
+    }
+    const ull replaceY = RenyiMap(Y, β, λ);
+    const byte *ptr_replaceYasBytes = (byte *)(void *)&replaceY;
+
+    for (i = 0; i < sizeof(ull); i++) {
+        ptr_XasBytes[byte_index_positions[i]] = ptr_replaceYasBytes[i];
+    }
     return Y;
 }
 #endif /* FN_C */

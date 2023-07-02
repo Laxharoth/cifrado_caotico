@@ -134,9 +134,7 @@ unsigned long long renyi_array_random_byte_select_with_replace(
     typedef unsigned long long ull;
     typedef unsigned char byte;
     static byte index_selector = 0;
-    const byte MOD_8_BIT_OPERATION_CONST = 0B00000111;
     const byte MOD_64_BIT_OPERATION_CONST = 0B00111111;
-    const byte MOD_MASK = 0XFF;
     byte byte_index_positions[sizeof(ull)];
     ull Y;
     byte *ptr_YasBytes = (byte *)(void *)&Y;

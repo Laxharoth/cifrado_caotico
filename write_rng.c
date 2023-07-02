@@ -93,15 +93,13 @@ void generate_random_file(const char *file_path, const Configuracion *config) {
         return;
     }
 
-    const unsigned char num_maps = 8;
-
-    ull X[num_maps];
+    ull X[NUMBER_OF_CAHOTIC_MAPS];
     ull Yi;
     calcular_hash((unsigned char *)&(config->seed), sizeof(ull),
-                  sizeof(ull) * num_maps, (unsigned char *)X);
+                  sizeof(ull) * NUMBER_OF_CAHOTIC_MAPS, (unsigned char *)X);
 
     const size_t chunk_size =
-        sizeof(ull) * num_maps;  // Tamaño de cada fragmento a escribir
+        sizeof(ull) * NUMBER_OF_CAHOTIC_MAPS;  // Tamaño de cada fragmento a escribir
     size_t remaining_bytes = config->file_size;
     while (remaining_bytes > 0) {
         // Generar datos aleatorios para el fragmento actual

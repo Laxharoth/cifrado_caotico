@@ -71,8 +71,7 @@ inline unsigned long long rotr64(unsigned long long value, unsigned int count) {
 
 #define RenyiMap(X, β, λ) (X * β) + (X >> λ)
 
-void renyi_array_generator(unsigned long long X[8], const unsigned int Β,
-                           const unsigned int Λ) {
+#define NUMBER_OF_CAHOTIC_MAPS 8
     typedef unsigned long long ull;
     typedef unsigned char byte;
     ull rn1, rn2, avr;

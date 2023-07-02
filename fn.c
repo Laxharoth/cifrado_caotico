@@ -138,7 +138,7 @@ unsigned long long renyi_array_random_byte_select_with_replace(
     byte byte_index_positions[sizeof(ull)];
     ull Y;
     byte *ptr_YasBytes = (byte *)(void *)&Y;
-    byte *ptr_XasBytes = (byte *)(void *)&X;
+    byte *ptr_XasBytes = (byte *)(void *)X;
     byte i;
     for (i = 0; i < sizeof(ull); i++) {
         byte_index_positions[i] = index_selector;

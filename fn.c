@@ -72,6 +72,9 @@ inline unsigned long long rotr64(unsigned long long value, unsigned int count) {
 #define RenyiMap(X, β, λ) (X * β) + (X >> λ)
 
 #define NUMBER_OF_CAHOTIC_MAPS 8
+
+void renyi_array_generator(unsigned long long X[NUMBER_OF_CAHOTIC_MAPS],
+                           const unsigned int β, const unsigned int λ) {
     typedef unsigned long long ull;
     typedef unsigned char byte;
     ull rn1, rn2, avr;
@@ -80,7 +83,7 @@ inline unsigned long long rotr64(unsigned long long value, unsigned int count) {
     ull *Xi;
 
     for (Xi = X, i = 0; i < 4; i++, Xi++) {
-        *Xi = RenyiMap(*Xi, Β, Λ);
+        *Xi = RenyiMap(*Xi, β, λ);
         rn1 ^= *Xi;
     }
 
@@ -88,7 +91,7 @@ inline unsigned long long rotr64(unsigned long long value, unsigned int count) {
     byte *bit_toggle = rotation + 4;
 
     for (Xi = X + 4, i = 0; i < 4; i++, Xi++, rotation++, bit_toggle++) {
-        *Xi = RenyiMap(*Xi, Β, Λ);
+        *Xi = RenyiMap(*Xi, β, λ);
         *Xi = rotl64(*Xi, (*rotation) & 63);
         *Xi ^= 1 << ((*bit_toggle) & 63);
         rn2 ^= *Xi;

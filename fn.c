@@ -106,25 +106,21 @@ unsigned long long renyi_array_combine_maps_with_mask_and_replace(
     unsigned long long X[NUMBER_OF_CAHOTIC_MAPS], const unsigned int β,
     const unsigned int λ) {
     //
+
     typedef unsigned long long ull;
     typedef unsigned char byte;
     const byte MOD_8_BIT_OPERATION_CONST = 0B00000111;
     const byte MOD_255_BIT_OPERATION_CONST = 0B11111111;
-    const ull mask = 0xFFFFFFFF;
+    const ull mask = 0x00000000FFFFFFFFULL;
     static byte index_selector = 0;
 
-    index_selector &= sizeof(ull) * NUMBER_OF_CAHOTIC_MAPS;
-
-    byte *selector = (byte *)(X);
-    const byte index_1 = selector[index_selector++] & MOD_8_BIT_OPERATION_CONST,
-               index_2 = selector[index_selector++] & MOD_8_BIT_OPERATION_CONST;
+    const byte index_1 = index_selector,
+               index_2 = (index_selector + 1) & MOD_8_BIT_OPERATION_CONST;
     const ull Y = (X[index_1] & mask) | (X[index_2] & ~mask);
-
-    X[index_1] =
-        RenyiMap((X[index_1] + (Y & MOD_255_BIT_OPERATION_CONST)), β, λ);
     X[index_2] =
-        RenyiMap((X[index_1] + (Y & MOD_255_BIT_OPERATION_CONST)), β, λ);
+        RenyiMap((X[index_2] + (Y & MOD_255_BIT_OPERATION_CONST)), β, λ);
 
+    index_selector = index_2;
     return Y;
 }
 

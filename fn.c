@@ -97,8 +97,8 @@ void renyi_array_generator(unsigned long long X[NUMBER_OF_CAHOTIC_MAPS],
         rn2 ^= *Xi;
     }
     avr = (rn1 ^ rn2);
-    for (Xi = X, i = 0; i < 8; i++, Xi++) {
-        *Xi = (*Xi * 3) + (avr & 0b11111111);
+    for (Xi = X, i = 0; i < NUMBER_OF_CAHOTIC_MAPS; i++, Xi++) {
+        *Xi = (*Xi) + (avr & 0b11111111);
     }
 }
 

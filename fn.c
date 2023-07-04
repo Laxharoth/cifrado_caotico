@@ -125,8 +125,8 @@ unsigned long long renyi_array_combine_maps_with_mask_and_replace(
 }
 
 unsigned long long renyi_array_random_byte_select_with_replace(
-    unsigned long long X[NUMBER_OF_CAHOTIC_MAPS], const unsigned int β,
-    const unsigned int λ) {
+    unsigned long long X[NUMBER_OF_CAHOTIC_MAPS], const unsigned char β,
+    const unsigned char λ) {
     typedef unsigned long long ull;
     typedef unsigned char byte;
     static byte index_selector = 0;
@@ -140,12 +140,8 @@ unsigned long long renyi_array_random_byte_select_with_replace(
         byte_index_positions[i] = index_selector;
         ptr_YasBytes[i] = ptr_XasBytes[index_selector];
         index_selector = (ptr_YasBytes[i] & MOD_64_BIT_OPERATION_CONST);
-    }
-    const ull replaceY = RenyiMap(Y, β, λ);
-    const byte *ptr_replaceYasBytes = (byte *)(void *)&replaceY;
-
-    for (i = 0; i < sizeof(ull); i++) {
-        ptr_XasBytes[byte_index_positions[i]] = ptr_replaceYasBytes[i];
+        ptr_XasBytes[index_selector] =
+            RenyiMap(ptr_XasBytes[index_selector], β, λ);
     }
     return Y;
 }

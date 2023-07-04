@@ -140,8 +140,7 @@ unsigned long long renyi_array_random_byte_select_with_replace(
         byte_index_positions[i] = index_selector;
         ptr_YasBytes[i] = ptr_XasBytes[index_selector];
         index_selector = (ptr_YasBytes[i] & MOD_64_BIT_OPERATION_CONST);
-        ptr_XasBytes[index_selector] =
-            RenyiMap(ptr_XasBytes[index_selector], β, λ);
+        X[index_selector >> 3] = RenyiMap(X[index_selector >> 3], β, λ);
     }
     return Y;
 }

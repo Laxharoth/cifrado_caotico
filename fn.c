@@ -4,6 +4,7 @@
 #include <math.h>
 #include <stdlib.h>
 #include <string.h>
+#define min(a, b) (((a) < (b)) ? (a) : (b))
 
 #define Π 3.141592653589793
 double logistic_map(double x, double μ) { return 4 * μ * x * (1 - x); }
@@ -131,17 +132,13 @@ unsigned long long renyi_array_random_byte_select_with_replace(
     typedef unsigned char byte;
     static byte index_selector = 0;
     const byte MOD_64_BIT_OPERATION_CONST = 0B00111111;
-    byte byte_index_positions[sizeof(ull)];
     ull Y;
     byte *ptr_YasBytes = (byte *)(void *)&Y;
     byte *ptr_XasBytes = (byte *)(void *)X;
-    byte i;
-    for (i = 0; i < sizeof(ull); i++) {
-        byte_index_positions[i] = index_selector;
-        ptr_YasBytes[i] = ptr_XasBytes[index_selector];
-        index_selector = (ptr_YasBytes[i] & MOD_64_BIT_OPERATION_CONST);
-        X[index_selector >> 3] = RenyiMap(X[index_selector >> 3], β, λ);
-    }
+    Y = *((ull *)(ptr_XasBytes + index_selector));
+    index_selector = (*ptr_YasBytes & MOD_64_BIT_OPERATION_CONST);
+    index_selector = min(index_selector, 56);
+    *((ull *)(ptr_XasBytes + index_selector)) = RenyiMap(Y, β, λ);
     return Y;
 }
 #endif /* FN_C */

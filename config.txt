@@ -1,4 +1,6 @@
 beta=15
 lambda=3
-seed=12407087174345741324
+r=1
+seed=1
+file_size=1073741
 file_size=1073741824

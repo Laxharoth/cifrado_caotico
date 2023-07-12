@@ -43,7 +43,7 @@ Configuracion readConfigFile(const char *filename) {
         } else if (strcmp(key, "lambda") == 0) {
             config.lambda = atoi(value);
         } else if (strcmp(key, "r") == 0) {
-            config.file_size = atoi(value);
+            config.r = strtoull(value, &endptr, 10);
         } else if (strcmp(key, "seed") == 0) {
             config.seed = strtoull(value, &endptr, 10);
         } else if (strcmp(key, "file_size") == 0) {

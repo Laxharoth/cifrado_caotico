@@ -7,6 +7,35 @@
 #define min(a, b) (((a) < (b)) ? (a) : (b))
 
 #define Π 3.141592653589793
+
+unsigned long long find_most_significant_bit(unsigned long long value) {
+    unsigned long long msb;
+    while (value > 1) {
+        value >>= 1;
+        msb++;
+    }
+    return msb;
+}
+
+unsigned long long sqrtull(unsigned long long a) {
+    unsigned long long min = 0;
+    unsigned long long max = (1ull) << 32;
+
+    while (1) {
+        if (max <= 1 + min) return min;
+
+        unsigned long long sqt = min + (max - min) / 2;
+        unsigned long long sq = sqt * sqt;
+
+        if (sq == a) return sqt;
+
+        if (sq > a)
+            max = sqt;
+        else
+            min = sqt;
+    }
+}
+
 double logistic_map(double x, double μ) { return 4 * μ * x * (1 - x); }
 
 double sine_map(double x, double μ) { return μ * sin(x * Π); }

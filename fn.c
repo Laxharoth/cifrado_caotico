@@ -99,9 +99,8 @@ inline unsigned long long rotr64(unsigned long long value, unsigned int count) {
     return (value >> count) | (value << (-count & mask));
 }
 
-#define max_value (0xFFFFFFFFFFFFFFFF >> 1) - 1
 #define RenyiMap(X, β, λ) (X * β) + (X >> λ)
-#define LogisticMap(X, r) r *X *(max_value - X)
+#define LogisticMap(X, r, t) r *X *(t - X)
 
 #define NUMBER_OF_CAHOTIC_MAPS 8
 
@@ -175,18 +174,20 @@ unsigned long long renyi_array_random_byte_select_with_replace(
 unsigned long long logistic_renyi_map(const unsigned long long X,
                                       const unsigned int β,
                                       const unsigned int λ,
-                                      const unsigned int r) {
+                                      const unsigned int r,
+                                      const unsigned long long t) {
     const unsigned long long Y = RenyiMap(X, β, λ);
-    return LogisticMap(Y, r);
+    return LogisticMap(Y & t, r, t);
 }
 unsigned long long logistic_renyi_map_choice(const unsigned long long X,
                                              const unsigned int β,
                                              const unsigned int λ,
-                                             const unsigned int r) {
+                                             const unsigned int r,
+                                             const unsigned long long t) {
     const unsigned long long Y = RenyiMap(X, β, λ);
     if (Y & 1)
         return Y;
     else
-        return LogisticMap(Y, r);
+        return LogisticMap(Y & t, r, t);
 }
 #endif /* FN_C */

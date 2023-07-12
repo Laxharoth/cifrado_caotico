@@ -136,11 +136,15 @@ void generate_random_file_4(const char *file_path,
         sizeof(ull) *
         NUMBER_OF_CAHOTIC_MAPS;  // Tamaño de cada fragmento a escribir
     size_t remaining_bytes = config->file_size;
+    ull divisor = config->r;
+    ull t = 0xFFFFFFFFFFFFFFFF / divisor;
+    t = sqrtull(t);
+    t = 1 << find_most_significant_bit(t) - 1;
     while (remaining_bytes > 0) {
         // Generar datos aleatorios para el fragmento actual
         size_t chunk_bytes =
             (chunk_size < remaining_bytes) ? chunk_size : remaining_bytes;
-        X = logistic_renyi_map(X, config->beta, config->lambda, config->r);
+        X = logistic_renyi_map(X, config->beta, config->lambda, config->r, t);
 
 #ifndef MEASURE_TIME_ONLY
         fwrite(&X, sizeof(unsigned char), chunk_bytes, file);
@@ -162,7 +166,8 @@ void generate_random_file_5(const char *file_path,
 
     ull X = config->seed;
     ull Yi;
-
+    ull t = sqrtull(0xFFFFFFFFFFFFFFFF / config->r);
+    t = 1 << find_most_significant_bit(t) - 1;
     const size_t chunk_size =
         sizeof(ull) *
         NUMBER_OF_CAHOTIC_MAPS;  // Tamaño de cada fragmento a escribir
@@ -172,7 +177,7 @@ void generate_random_file_5(const char *file_path,
         size_t chunk_bytes =
             (chunk_size < remaining_bytes) ? chunk_size : remaining_bytes;
         X = logistic_renyi_map_choice(X, config->beta, config->lambda,
-                                      config->r);
+                                      config->r, t);
 
 #ifndef MEASURE_TIME_ONLY
         fwrite(&X, sizeof(unsigned char), chunk_bytes, file);

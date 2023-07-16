@@ -10,7 +10,8 @@
 typedef struct {
     unsigned int beta;
     unsigned int lambda;
-    unsigned long long r;
+    unsigned int bulk_size;
+    double r;
     unsigned long long seed;
     unsigned long long file_size;
 } Configuracion;

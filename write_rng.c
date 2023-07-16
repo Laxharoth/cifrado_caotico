@@ -23,6 +23,39 @@ void calcular_hash(const unsigned char *data, size_t data_length,
     EVP_MD_CTX_free(mdctx);
 }
 
+void generate_random_file_1(const char *file_path,
+                            const Configuracion *config) {
+    typedef unsigned long long ull;
+    FILE *file = fopen(file_path, "wb");
+    if (file == NULL) {
+        printf("No se pudo abrir el archivo.\n");
+        return;
+    }
+
+    ull X[NUMBER_OF_CAHOTIC_MAPS];
+    ull Yi;
+    calcular_hash((unsigned char *)&(config->seed), sizeof(ull),
+                  sizeof(ull) * NUMBER_OF_CAHOTIC_MAPS, (unsigned char *)X);
+
+    const size_t chunk_size =
+        sizeof(ull) *
+        NUMBER_OF_CAHOTIC_MAPS;  // Tamaño de cada fragmento a escribir
+    size_t remaining_bytes = config->file_size;
+    while (remaining_bytes > 0) {
+        // Generar datos aleatorios para el fragmento actual
+        size_t chunk_bytes =
+            (chunk_size < remaining_bytes) ? chunk_size : remaining_bytes;
+        renyi_array_generator(X, config->beta, config->lambda);
+
+#ifndef MEASURE_TIME_ONLY
+        fwrite(X, sizeof(unsigned char), chunk_bytes, file);
+#endif
+        remaining_bytes -= chunk_bytes;
+    }
+
+    fclose(file);
+}
+
 void generate_random_file_2(const char *file_path,
                             const Configuracion *config) {
     typedef unsigned long long ull;
@@ -87,39 +120,6 @@ void generate_random_file_3(const char *file_path,
     fclose(file);
 }
 
-void generate_random_file_1(const char *file_path,
-                            const Configuracion *config) {
-    typedef unsigned long long ull;
-    FILE *file = fopen(file_path, "wb");
-    if (file == NULL) {
-        printf("No se pudo abrir el archivo.\n");
-        return;
-    }
-
-    ull X[NUMBER_OF_CAHOTIC_MAPS];
-    ull Yi;
-    calcular_hash((unsigned char *)&(config->seed), sizeof(ull),
-                  sizeof(ull) * NUMBER_OF_CAHOTIC_MAPS, (unsigned char *)X);
-
-    const size_t chunk_size =
-        sizeof(ull) *
-        NUMBER_OF_CAHOTIC_MAPS;  // Tamaño de cada fragmento a escribir
-    size_t remaining_bytes = config->file_size;
-    while (remaining_bytes > 0) {
-        // Generar datos aleatorios para el fragmento actual
-        size_t chunk_bytes =
-            (chunk_size < remaining_bytes) ? chunk_size : remaining_bytes;
-        renyi_array_generator(X, config->beta, config->lambda);
-
-#ifndef MEASURE_TIME_ONLY
-        fwrite(&X, sizeof(unsigned char), chunk_bytes, file);
-#endif
-        remaining_bytes -= chunk_bytes;
-    }
-
-    fclose(file);
-}
-
 void generate_random_file_4(const char *file_path,
                             const Configuracion *config) {
     typedef unsigned long long ull;
@@ -133,18 +133,17 @@ void generate_random_file_4(const char *file_path,
     ull Yi;
 
     const size_t chunk_size =
-        sizeof(ull) *
-        NUMBER_OF_CAHOTIC_MAPS;  // Tamaño de cada fragmento a escribir
+        sizeof(ull);  // Tamaño de cada fragmento a escribir
     size_t remaining_bytes = config->file_size;
     ull divisor = config->r;
-    ull t = 0xFFFFFFFFFFFFFFFF / divisor;
-    t = sqrtull(t);
-    t = 1 << find_most_significant_bit(t) - 1;
+    ull t = (0xFFFFFFFFFFFFFFFF / divisor);
+    t = sqrtull(t) << 1;
+    ull mask = (1ull << find_most_significant_bit(t)) - 1;
     while (remaining_bytes > 0) {
         // Generar datos aleatorios para el fragmento actual
         size_t chunk_bytes =
             (chunk_size < remaining_bytes) ? chunk_size : remaining_bytes;
-        X = logistic_renyi_map(X, config->beta, config->lambda, config->r, t);
+        X = logistic_renyi(X, config->beta, config->lambda, config->r);
 
 #ifndef MEASURE_TIME_ONLY
         fwrite(&X, sizeof(unsigned char), chunk_bytes, file);
@@ -164,23 +163,55 @@ void generate_random_file_5(const char *file_path,
         return;
     }
 
-    ull X = config->seed;
+    ull X[config->bulk_size];
     ull Yi;
-    ull t = sqrtull(0xFFFFFFFFFFFFFFFF / config->r);
-    t = 1 << find_most_significant_bit(t) - 1;
+    ull divisor = config->r;
+    ull t = 0xFFFFFFFFFFFFFFFF / divisor;
+    t = sqrtull(t) << 1;
+    ull mask = (1ull << find_most_significant_bit(t)) - 1;
     const size_t chunk_size =
-        sizeof(ull) *
-        NUMBER_OF_CAHOTIC_MAPS;  // Tamaño de cada fragmento a escribir
+        sizeof(ull) * config->bulk_size;  // Tamaño de cada fragmento a escribir
     size_t remaining_bytes = config->file_size;
     while (remaining_bytes > 0) {
         // Generar datos aleatorios para el fragmento actual
         size_t chunk_bytes =
             (chunk_size < remaining_bytes) ? chunk_size : remaining_bytes;
-        X = logistic_renyi_map_choice(X, config->beta, config->lambda,
-                                      config->r, t);
+        Yi = renyi_with_logistic_perturbation(
+            Yi, X, config->bulk_size, config->beta, config->lambda, config->r);
 
 #ifndef MEASURE_TIME_ONLY
-        fwrite(&X, sizeof(unsigned char), chunk_bytes, file);
+        fwrite(X, sizeof(unsigned char), chunk_bytes, file);
+#endif
+        remaining_bytes -= chunk_bytes;
+    }
+
+    fclose(file);
+}
+
+void generate_random_file_6(const char *file_path,
+                            const Configuracion *config) {
+    typedef unsigned long long ull;
+    FILE *file = fopen(file_path, "wb");
+    if (file == NULL) {
+        printf("No se pudo abrir el archivo.\n");
+        return;
+    }
+
+    ull X[config->bulk_size];
+    ull Yi = config->seed;
+    ull divisor = config->r;
+    const size_t chunk_size =
+        sizeof(ull) * config->bulk_size;  // Tamaño de cada fragmento a escribir
+    size_t remaining_bytes = config->file_size;
+    while (remaining_bytes > 0) {
+        // Generar datos aleatorios para el fragmento actual
+        size_t chunk_bytes =
+            (chunk_size < remaining_bytes) ? chunk_size : remaining_bytes;
+        // Yi = renyi_map_bulk_with_tent_perturbation(
+        //     Yi, X, config->beta, config->lambda, config->bulk_size);
+
+#ifndef MEASURE_TIME_ONLY
+        fwrite(X, sizeof(unsigned char), chunk_bytes, file);
 #endif
         remaining_bytes -= chunk_bytes;
     }
@@ -209,6 +240,10 @@ int main() {
     });
     print_time({
         const char *file_path = "random_data5.bin";
+        generate_random_file_5(file_path, &config);
+    });
+    print_time({
+        const char *file_path = "random_data6.bin";
         generate_random_file_5(file_path, &config);
     });
     return 0;

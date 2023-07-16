@@ -9,7 +9,7 @@
 #define Π 3.141592653589793
 
 unsigned long long find_most_significant_bit(unsigned long long value) {
-    unsigned long long msb;
+    unsigned long long msb = 0;
     while (value > 1) {
         value >>= 1;
         msb++;

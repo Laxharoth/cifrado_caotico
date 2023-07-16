@@ -8,8 +8,11 @@
 
 #define Π 3.141592653589793
 
-unsigned long long find_most_significant_bit(unsigned long long value) {
-    unsigned long long msb = 0;
+typedef unsigned long long ull;
+typedef unsigned char byte;
+
+ull find_most_significant_bit(ull value) {
+    ull msb = 0;
     while (value > 1) {
         value >>= 1;
         msb++;
@@ -17,15 +20,15 @@ unsigned long long find_most_significant_bit(unsigned long long value) {
     return msb;
 }
 
-unsigned long long sqrtull(unsigned long long a) {
-    unsigned long long min = 0;
-    unsigned long long max = (1ull) << 32;
+ull sqrtull(ull a) {
+    ull min = 0;
+    ull max = (1ull) << 32;
 
     while (1) {
         if (max <= 1 + min) return min;
 
-        unsigned long long sqt = min + (max - min) / 2;
-        unsigned long long sq = sqt * sqt;
+        ull sqt = min + (max - min) / 2;
+        ull sq = sqt * sqt;
 
         if (sq == a) return sqt;
 
@@ -87,27 +90,25 @@ inline long long exp_taylor(long long x) {
 
 inline long long exp_base_2(unsigned int x) { return 1 << x; }
 
-inline unsigned long long rotl64(unsigned long long value, unsigned int count) {
+inline ull rotl64(ull value, unsigned int count) {
     const unsigned int mask = CHAR_BIT * sizeof(value) - 1;
     count &= mask;
     return (value << count) | (value >> (-count & mask));
 }
 
-inline unsigned long long rotr64(unsigned long long value, unsigned int count) {
+inline ull rotr64(ull value, unsigned int count) {
     const unsigned int mask = CHAR_BIT * sizeof(value) - 1;
     count &= mask;
     return (value >> count) | (value << (-count & mask));
 }
 
 #define RenyiMap(X, β, λ) (X * β) + (X >> λ)
-#define LogisticMap(X, r, t) r *X *(t - X)
+#define LogisticMap(X, r) r *X * (1.0 - X)
 
 #define NUMBER_OF_CAHOTIC_MAPS 8
 
-void renyi_array_generator(unsigned long long X[NUMBER_OF_CAHOTIC_MAPS],
-                           const unsigned int β, const unsigned int λ) {
-    typedef unsigned long long ull;
-    typedef unsigned char byte;
+void renyi_array_generator(ull X[NUMBER_OF_CAHOTIC_MAPS], const unsigned int β,
+                           const unsigned int λ) {
     ull rn1, rn2, avr;
     rn1 = rn2 = 0;
     unsigned i = 0;
@@ -118,7 +119,7 @@ void renyi_array_generator(unsigned long long X[NUMBER_OF_CAHOTIC_MAPS],
         rn1 ^= *Xi;
     }
 
-    byte *rotation = (unsigned char *)(void *)&rn1;
+    byte *rotation = (byte *)(void *)&rn1;
     byte *bit_toggle = rotation + 4;
 
     for (Xi = X + 4, i = 0; i < 4; i++, Xi++, rotation++, bit_toggle++) {
@@ -133,13 +134,10 @@ void renyi_array_generator(unsigned long long X[NUMBER_OF_CAHOTIC_MAPS],
     }
 }
 
-unsigned long long renyi_array_combine_maps_with_mask_and_replace(
-    unsigned long long X[NUMBER_OF_CAHOTIC_MAPS], const unsigned int β,
-    const unsigned int λ) {
+ull renyi_array_combine_maps_with_mask_and_replace(
+    ull X[NUMBER_OF_CAHOTIC_MAPS], const unsigned int β, const unsigned int λ) {
     //
 
-    typedef unsigned long long ull;
-    typedef unsigned char byte;
     const byte MOD_8_BIT_OPERATION_CONST = 0B00000111;
     const byte MOD_255_BIT_OPERATION_CONST = 0B11111111;
     const ull mask = 0x00000000FFFFFFFFULL;
@@ -155,11 +153,8 @@ unsigned long long renyi_array_combine_maps_with_mask_and_replace(
     return Y;
 }
 
-unsigned long long renyi_array_random_byte_select_with_replace(
-    unsigned long long X[NUMBER_OF_CAHOTIC_MAPS], const unsigned char β,
-    const unsigned char λ) {
-    typedef unsigned long long ull;
-    typedef unsigned char byte;
+ull renyi_array_random_byte_select_with_replace(ull X[NUMBER_OF_CAHOTIC_MAPS],
+                                                const byte β, const byte λ) {
     static byte index_selector = 0;
     const byte MOD_64_BIT_OPERATION_CONST = 0B00111111;
     ull Y;
@@ -171,23 +166,28 @@ unsigned long long renyi_array_random_byte_select_with_replace(
     *((ull *)(ptr_XasBytes + index_selector)) = RenyiMap(Y, β, λ);
     return Y;
 }
-unsigned long long logistic_renyi_map(const unsigned long long X,
-                                      const unsigned int β,
-                                      const unsigned int λ,
-                                      const unsigned int r,
-                                      const unsigned long long t) {
-    const unsigned long long Y = RenyiMap(X, β, λ);
-    return LogisticMap(Y & t, r, t);
+
+inline ull logistic_renyi(const ull x, const byte β, const byte λ,
+                          const byte r) {
+    static const double RESIZE_CNT = (double)0xFFFFFFFFFFFFFFFF;
+    const ull renyi = RenyiMap(x, β, λ);
+    const double renyi_dbl = renyi / RESIZE_CNT;
+    const double logistic = LogisticMap(renyi_dbl, r);
+    return (ull)(logistic * RESIZE_CNT);
 }
-unsigned long long logistic_renyi_map_choice(const unsigned long long X,
-                                             const unsigned int β,
-                                             const unsigned int λ,
-                                             const unsigned int r,
-                                             const unsigned long long t) {
-    const unsigned long long Y = RenyiMap(X, β, λ);
-    if (Y & 1)
-        return Y;
-    else
-        return LogisticMap(Y & t, r, t);
+
+inline ull renyi_with_logistic_perturbation(ull y, ull *x, const byte bulk_size,
+                                            const byte β, const byte λ,
+                                            const byte r) {
+    static const double RESIZE_CNT = (double)0xFFFFFFFFFFFFFFFF;
+    *x = RenyiMap(y, β, λ);
+
+    for (byte i = 1; i < bulk_size; ++i, ++x) {
+        *(x + 1) = RenyiMap(*x, β, λ);
+    }
+    const double renyi_dbl = *x / RESIZE_CNT;
+    const double logistic = LogisticMap(renyi_dbl, r);
+    return (ull)(logistic * RESIZE_CNT);
 }
+
 #endif /* FN_C */

@@ -104,6 +104,7 @@ inline ull rotr64(ull value, unsigned int count) {
 
 #define RenyiMap(X, β, λ) (X * β) + (X >> λ)
 #define LogisticMap(X, r) r *X * (1.0 - X)
+#define LogisticCircleMap(X, r) sqrt(1 - (2 * X - 1) * (2 * X - 1))
 
 #define NUMBER_OF_CAHOTIC_MAPS 8
 
@@ -187,6 +188,19 @@ inline ull renyi_with_logistic_perturbation(ull y, ull *x, const byte bulk_size,
     }
     const double renyi_dbl = *x / RESIZE_CNT;
     const double logistic = LogisticMap(renyi_dbl, r);
+    return (ull)(logistic * RESIZE_CNT);
+}
+inline ull renyi_with_circle_perturbation(ull y, ull *x, const byte bulk_size,
+                                          const byte β, const byte λ,
+                                          const byte r) {
+    static const double RESIZE_CNT = (double)0xFFFFFFFFFFFFFFFF;
+    *x = RenyiMap(y, β, λ);
+
+    for (byte i = 1; i < bulk_size; ++i, ++x) {
+        *(x + 1) = RenyiMap(*x, β, λ);
+    }
+    const double renyi_dbl = *x / RESIZE_CNT;
+    const double logistic = LogisticCircleMap(renyi_dbl, r);
     return (ull)(logistic * RESIZE_CNT);
 }
 

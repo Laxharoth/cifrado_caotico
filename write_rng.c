@@ -198,8 +198,11 @@ void generate_random_file_6(const char *file_path,
     }
 
     ull X[config->bulk_size];
-    ull Yi = config->seed;
+    ull Yi;
     ull divisor = config->r;
+    ull t = 0xFFFFFFFFFFFFFFFF / divisor;
+    t = sqrtull(t) << 1;
+    ull mask = (1ull << find_most_significant_bit(t)) - 1;
     const size_t chunk_size =
         sizeof(ull) * config->bulk_size;  // Tamaño de cada fragmento a escribir
     size_t remaining_bytes = config->file_size;
@@ -207,8 +210,8 @@ void generate_random_file_6(const char *file_path,
         // Generar datos aleatorios para el fragmento actual
         size_t chunk_bytes =
             (chunk_size < remaining_bytes) ? chunk_size : remaining_bytes;
-        // Yi = renyi_map_bulk_with_tent_perturbation(
-        //     Yi, X, config->beta, config->lambda, config->bulk_size);
+        Yi = renyi_with_circle_perturbation(
+            Yi, X, config->bulk_size, config->beta, config->lambda, config->r);
 
 #ifndef MEASURE_TIME_ONLY
         fwrite(X, sizeof(unsigned char), chunk_bytes, file);

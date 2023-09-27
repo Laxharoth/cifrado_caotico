@@ -93,10 +93,11 @@
         "externs.h": "c",
         "utilities.h": "c",
         "genutils.h": "c",
-        "generators.h": "c"
+        "generators.h": "c",
+        "configstructure.h": "c"
     },
     "python.formatting.provider": "none",
-    "python.analysis.typeCheckingMode": "basic",
+    "python.analysis.typeCheckingMode": "off",
     "[python]": {
         "editor.defaultFormatter": "ms-python.black-formatter"
     },

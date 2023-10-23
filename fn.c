@@ -177,6 +177,15 @@ inline ull logistic_renyi(const ull x, const byte β, const byte λ,
     return (ull)(logistic * RESIZE_CNT);
 }
 
+inline ull logistic_renyi_xor_trayectories(const ull x, const byte β,
+                                           const byte λ, const byte r) {
+    static const double RESIZE_CNT = (double)0xFFFFFFFFFFFFFFFF;
+    const ull renyi = RenyiMap(x, β, λ);
+    const double renyi_dbl = renyi / RESIZE_CNT;
+    const double logistic = LogisticMap(renyi_dbl, r);
+    return (ull)(logistic * RESIZE_CNT) ^ renyi;
+}
+
 inline ull renyi_with_logistic_perturbation(ull y, ull *x, const byte bulk_size,
                                             const byte β, const byte λ,
                                             const byte r) {
@@ -202,6 +211,11 @@ inline ull renyi_with_circle_perturbation(ull y, ull *x, const byte bulk_size,
     const double renyi_dbl = *x / RESIZE_CNT;
     const double logistic = LogisticCircleMap(renyi_dbl, r);
     return (ull)(logistic * RESIZE_CNT);
+}
+
+ull logistic_generalized(ull x, ull h, ull k, ull factor_n) {
+    const ull difference = x - h;
+    return k - difference * difference * factor_n;
 }
 
 #endif /* FN_C */

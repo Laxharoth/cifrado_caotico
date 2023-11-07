@@ -5,20 +5,12 @@
 #include <stdlib.h>
 #include <string.h>
 #define min(a, b) (((a) < (b)) ? (a) : (b))
-
-#define Π 3.141592653589793
+#ifndef NUMBER_OF_CAHOTIC_MAPS
+#define NUMBER_OF_CAHOTIC_MAPS 8
+#endif
 
 typedef unsigned long long ull;
 typedef unsigned char byte;
-
-ull find_most_significant_bit(ull value) {
-    ull msb = 0;
-    while (value > 1) {
-        value >>= 1;
-        msb++;
-    }
-    return msb;
-}
 
 ull sqrtull(ull a) {
     ull min = 0;
@@ -39,75 +31,22 @@ ull sqrtull(ull a) {
     }
 }
 
-double logistic_map(double x, double μ) { return 4 * μ * x * (1 - x); }
+#define RenyiMap(X, β, λ) (X * β) + (X >> λ)
+#define LogisticMap(X, r) r *X * (1.0 - X)
+#define LogisticMapInt(X, r, t) r *X * (t - X)
 
-double sine_map(double x, double μ) { return μ * sin(x * Π); }
-
-double tent_map(double x, double μ) {
-    return (x < 0.5) ? 2 * μ * x : 2 * μ * (1 - x);
-}
-
-typedef double (*chaotic_map)(double x, double μ);
-
-double Γ(double x, double μ, double (*R)(double x, double μ),
-         double (*S)(double x, double μ)) {
-    const double a = R(x, μ);
-    const double b = S(x, 1 - μ);
-    const double c = S(b, μ);
-    const double ans = (exp(a + b) + c);
-    return ans - floor(ans);
-};
-
-double chaotic_map_walk(chaotic_map map, double x, double μ,
-                        unsigned int distance) {
-    while (distance-- > 0) {
-        x = map(x, μ);
-    }
-    return x;
-}
-
-void chaotic_map_sample(chaotic_map map, double x, double μ, unsigned int size,
-                        double *sample) {
-    *sample = map(x, μ), size--;
-    while (size-- > 0) {
-        sample++;
-        *sample = map(*(sample - 1), μ);
-    }
-}
-
-inline long long exp_taylor(long long x) {
-    long long result = 1;
-    long long tmp = x;
-    result += tmp;
-    tmp = (x * tmp) >> 1;
-    result += tmp;
-    tmp *= x / 3;
-    result += tmp;
-    tmp = (x * tmp) >> 2;
-    result += tmp;
-    return result;
-}
-
-inline long long exp_base_2(unsigned int x) { return 1 << x; }
-
+/**Rotacion izquierda circular*/
 inline ull rotl64(ull value, unsigned int count) {
     const unsigned int mask = CHAR_BIT * sizeof(value) - 1;
     count &= mask;
     return (value << count) | (value >> (-count & mask));
 }
-
+/**Rotacion derecha circular*/
 inline ull rotr64(ull value, unsigned int count) {
     const unsigned int mask = CHAR_BIT * sizeof(value) - 1;
     count &= mask;
     return (value >> count) | (value << (-count & mask));
 }
-
-#define RenyiMap(X, β, λ) (X * β) + (X >> λ)
-#define LogisticMap(X, r) r *X * (1.0 - X)
-#define LogisticMapInt(X, r, t) r *X * (t - X)
-#define LogisticCircleMap(X, r) sqrt(1 - (2 * X - 1) * (2 * X - 1))
-
-#define NUMBER_OF_CAHOTIC_MAPS 8
 
 void renyi_array_generator(ull X[NUMBER_OF_CAHOTIC_MAPS], const unsigned int β,
                            const unsigned int λ) {
@@ -192,51 +131,6 @@ inline ull logistic_renyi_with_random_cycle(const ull x, ull *y, const ull β, c
         *(++y)=LogisticMapInt(*y, r, t);
     }
     return *y;
-}
-
-inline ull logistic_renyi_xor(const ull x, const byte β, const byte λ,
-                          const byte r) {
-    static const double RESIZE_CNT = (double)0xFFFFFFFFFFFFFFFF;
-    const ull renyi = RenyiMap(x, β, λ);
-    const double renyi_dbl = renyi / RESIZE_CNT;
-    const double logistic = LogisticMap(renyi_dbl, r);
-    return ((ull)(logistic * RESIZE_CNT))^renyi;
-}
-
-inline ull logistic_renyi_xor_trayectories(const ull x, const byte β,
-                                           const byte λ, const byte r) {
-    static const double RESIZE_CNT = (double)0xFFFFFFFFFFFFFFFF;
-    const ull renyi = RenyiMap(x, β, λ);
-    const double renyi_dbl = renyi / RESIZE_CNT;
-    const double logistic = LogisticMap(renyi_dbl, r);
-    return (ull)(logistic * RESIZE_CNT) ^ renyi;
-}
-
-inline ull renyi_with_logistic_perturbation(ull y, ull *x, const byte bulk_size,
-                                            const byte β, const byte λ,
-                                            const byte r) {
-    static const double RESIZE_CNT = (double)0xFFFFFFFFFFFFFFFF;
-    *x = RenyiMap(y, β, λ);
-
-    for (byte i = 1; i < bulk_size; ++i, ++x) {
-        *(x + 1) = RenyiMap(*x, β, λ);
-    }
-    const double renyi_dbl = *x / RESIZE_CNT;
-    const double logistic = LogisticMap(renyi_dbl, r);
-    return (ull)(logistic * RESIZE_CNT);
-}
-inline ull renyi_with_circle_perturbation(ull y, ull *x, const byte bulk_size,
-                                          const byte β, const byte λ,
-                                          const byte r) {
-    static const double RESIZE_CNT = (double)0xFFFFFFFFFFFFFFFF;
-    *x = RenyiMap(y, β, λ);
-
-    for (byte i = 1; i < bulk_size; ++i, ++x) {
-        *(x + 1) = RenyiMap(*x, β, λ);
-    }
-    const double renyi_dbl = *x / RESIZE_CNT;
-    const double logistic = LogisticCircleMap(renyi_dbl, r);
-    return (ull)(logistic * RESIZE_CNT);
 }
 
 ull logistic_generalized(ull x, ull h, ull k, ull factor_n) {

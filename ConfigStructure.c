@@ -39,13 +39,19 @@ Configuracion readConfigFile(const char *filename) {
 
         // Guardar la clave y el valor en la estructura
         if (strcmp(key, "beta") == 0) {
-            config.beta = atoi(value);
+            config.beta = strtoull(value, &endptr, 10);
         } else if (strcmp(key, "lambda") == 0) {
-            config.lambda = atoi(value);
+            config.lambda = strtoull(value, &endptr, 10);
         } else if (strcmp(key, "bulk_size") == 0) {
-            config.bulk_size = atoi(value);
+            config.bulk_size = strtoull(value, &endptr, 10);
         } else if (strcmp(key, "r") == 0) {
-            config.r = strtod(value, &endptr);
+            config.r = strtoull(value, &endptr, 10);
+        } else if (strcmp(key, "h") == 0) {
+            config.h = strtoull(value, &endptr, 10);
+        } else if (strcmp(key, "k") == 0) {
+            config.k = strtoull(value, &endptr, 10);
+        } else if (strcmp(key, "n") == 0) {
+            config.n = strtoull(value, &endptr, 10);
         } else if (strcmp(key, "seed") == 0) {
             config.seed = strtoull(value, &endptr, 10);
         } else if (strcmp(key, "file_size") == 0) {

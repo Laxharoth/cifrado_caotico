@@ -8,10 +8,13 @@
 #define MAX_LINE_LENGTH 100
 
 typedef struct {
-    unsigned int beta;
-    unsigned int lambda;
-    unsigned int bulk_size;
-    double r;
+    unsigned long long beta;
+    unsigned long long lambda;
+    unsigned long long bulk_size;
+    unsigned long long r;
+    unsigned long long h;
+    unsigned long long k;
+    unsigned long long n;
     unsigned long long seed;
     unsigned long long file_size;
 } Configuracion;

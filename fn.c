@@ -172,7 +172,7 @@ ull renyi_array_random_byte_select_with_replace(ull X[NUMBER_OF_CAHOTIC_MAPS],
 inline ull logistic_renyi(const ull x, const ull β, const ull λ,
                           const ull r,const ull t) {
     const ull renyi = RenyiMap(x, β, λ);
-    return LogisticMapInt(renyi, r, t)  ^ renyi;
+    return LogisticMapInt(renyi, r, t);
 }
 
 inline ull logistic_renyi_with_cycle(const ull x, ull *y, const ull β, const ull λ,

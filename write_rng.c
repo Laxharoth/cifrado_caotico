@@ -7,7 +7,7 @@
 #include "time_measure.h"
 
 #define SAMPLE_SIZE 1
-
+#define MAX_ULL 0xFFFFFFFFFFFFFFFF
 void calcular_hash(const unsigned char *data, size_t data_length,
                    int output_length, unsigned char *hash_value) {
     EVP_MD_CTX *mdctx;
@@ -129,21 +129,22 @@ void generate_random_file_4(const char *file_path,
         return;
     }
 
-    ull X = config->seed;
-    ull Yi;
+    srand(config->seed);
+
+    ull X = rand();
+    X = (X<<32)|rand();
 
     const size_t chunk_size =
         sizeof(ull);  // Tamaño de cada fragmento a escribir
     size_t remaining_bytes = config->file_size;
     ull divisor = config->r;
     ull t = (0xFFFFFFFFFFFFFFFF / divisor);
-    t = sqrtull(t) << 1;
-    ull mask = (1ull << find_most_significant_bit(t)) - 1;
+    t = sqrtull(t);
     while (remaining_bytes > 0) {
         // Generar datos aleatorios para el fragmento actual
         size_t chunk_bytes =
             (chunk_size < remaining_bytes) ? chunk_size : remaining_bytes;
-        X = logistic_renyi(X, config->beta, config->lambda, config->r);
+        X = logistic_renyi(X, config->beta, config->lambda, config->r, t);
 
 #ifndef MEASURE_TIME_ONLY
         fwrite(&X, sizeof(unsigned char), chunk_bytes, file);
@@ -163,24 +164,27 @@ void generate_random_file_5(const char *file_path,
         return;
     }
 
-    ull X[config->bulk_size];
-    ull Yi;
-    ull divisor = config->r;
-    ull t = 0xFFFFFFFFFFFFFFFF / divisor;
-    t = sqrtull(t) << 1;
-    ull mask = (1ull << find_most_significant_bit(t)) - 1;
+    srand(config->seed);
+
+    ull X = rand();
+    X = (X<<32)|rand();
+    ull Yi[255];
+
+    ull size = config->n;
+
     const size_t chunk_size =
-        sizeof(ull) * config->bulk_size;  // Tamaño de cada fragmento a escribir
+        sizeof(ull) * size;  // Tamaño de cada fragmento a escribir
     size_t remaining_bytes = config->file_size;
+    ull t = (0xFFFFFFFFFFFFFFFF / config->r);
+    t = sqrtull(t);
     while (remaining_bytes > 0) {
         // Generar datos aleatorios para el fragmento actual
         size_t chunk_bytes =
             (chunk_size < remaining_bytes) ? chunk_size : remaining_bytes;
-        Yi = renyi_with_logistic_perturbation(
-            Yi, X, config->bulk_size, config->beta, config->lambda, config->r);
+        X = logistic_renyi_with_cycle(X, Yi, config->beta, config->lambda, config->r, t, size);
 
 #ifndef MEASURE_TIME_ONLY
-        fwrite(X, sizeof(unsigned char), chunk_bytes, file);
+        fwrite(&Yi, sizeof(unsigned char), chunk_bytes, file);
 #endif
         remaining_bytes -= chunk_bytes;
     }
@@ -197,24 +201,29 @@ void generate_random_file_6(const char *file_path,
         return;
     }
 
-    ull X[config->bulk_size];
-    ull Yi;
+    srand(config->seed);
+
+    ull X = rand();
+    X = (X<<32)|rand();
+    ull Yi[255];
+
+    ull mask = 0b1111;
+
     ull divisor = config->r;
-    ull t = 0xFFFFFFFFFFFFFFFF / divisor;
-    t = sqrtull(t) << 1;
-    ull mask = (1ull << find_most_significant_bit(t)) - 1;
-    const size_t chunk_size =
-        sizeof(ull) * config->bulk_size;  // Tamaño de cada fragmento a escribir
     size_t remaining_bytes = config->file_size;
+    ull t = (0xFFFFFFFFFFFFFFFF / divisor);
+    t = sqrtull(t);
     while (remaining_bytes > 0) {
+        const ull size = (X & mask)| 1; 
+    const size_t chunk_size =
+        sizeof(ull) * size;  // Tamaño de cada fragmento a escribir
         // Generar datos aleatorios para el fragmento actual
         size_t chunk_bytes =
             (chunk_size < remaining_bytes) ? chunk_size : remaining_bytes;
-        Yi = renyi_with_circle_perturbation(
-            Yi, X, config->bulk_size, config->beta, config->lambda, config->r);
+        X = logistic_renyi_with_random_cycle(X, Yi, config->beta, config->lambda, config->r, t, mask);
 
 #ifndef MEASURE_TIME_ONLY
-        fwrite(X, sizeof(unsigned char), chunk_bytes, file);
+        fwrite(&Yi, sizeof(unsigned char), chunk_bytes, file);
 #endif
         remaining_bytes -= chunk_bytes;
     }
@@ -222,11 +231,48 @@ void generate_random_file_6(const char *file_path,
     fclose(file);
 }
 
+void generate_random_file_7(const char *file_path,
+                            const Configuracion *config) {
+    typedef unsigned long long ull;
+    FILE *file = fopen(file_path, "wb");
+    if (file == NULL) {
+        printf("No se pudo abrir el archivo.\n");
+        return;
+    }
+
+    srand(config->seed);
+
+    ull X = rand();
+    X = (X<<32)|rand();
+
+    const size_t chunk_size =
+        sizeof(ull);  // Tamaño de cada fragmento a escribir
+    size_t remaining_bytes = config->file_size;
+    ull divisor = config->r;
+    ull t = (0xFFFFFFFFFFFFFFFF / divisor);
+    t = sqrtull(t);
+    while (remaining_bytes > 0) {
+        // Generar datos aleatorios para el fragmento actual
+        size_t chunk_bytes =
+            (chunk_size < remaining_bytes) ? chunk_size : remaining_bytes;
+        X = logistic_generalized(X, config->h, config->k, config->n);
+
+#ifndef MEASURE_TIME_ONLY
+        fwrite(&X, sizeof(unsigned char), chunk_bytes, file);
+#endif
+        remaining_bytes -= chunk_bytes;
+    }
+
+    fclose(file);
+}
+
+
+
 int main() {
     const Configuracion config = readConfigFile("config.txt");
     printf("%llu\n", config.file_size);
     print_time({
-        const char *file_path = "random_data.bin";
+        const char *file_path = "random_data1.bin";
         generate_random_file_1(file_path, &config);
     });
     print_time({
@@ -247,7 +293,11 @@ int main() {
     });
     print_time({
         const char *file_path = "random_data6.bin";
-        generate_random_file_5(file_path, &config);
+        generate_random_file_6(file_path, &config);
+    });
+    print_time({
+        const char *file_path = "random_data7.bin";
+        generate_random_file_7(file_path, &config);
     });
     return 0;
 }

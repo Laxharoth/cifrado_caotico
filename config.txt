@@ -1,7 +1,9 @@
-beta=15
-lambda=3
-r=3.9
-seed=10
+beta=36028797018963967    
+lambda=12
+r=63
+seed=223
+h=4294967295
+k=4294967295
+n=11
 file_size=1073741824
-file_size=1073741
 bulk_size=8

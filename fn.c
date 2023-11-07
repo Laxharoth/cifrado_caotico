@@ -104,6 +104,7 @@ inline ull rotr64(ull value, unsigned int count) {
 
 #define RenyiMap(X, β, λ) (X * β) + (X >> λ)
 #define LogisticMap(X, r) r *X * (1.0 - X)
+#define LogisticMapInt(X, r, t) r *X * (t - X)
 #define LogisticCircleMap(X, r) sqrt(1 - (2 * X - 1) * (2 * X - 1))
 
 #define NUMBER_OF_CAHOTIC_MAPS 8
@@ -114,8 +115,9 @@ void renyi_array_generator(ull X[NUMBER_OF_CAHOTIC_MAPS], const unsigned int β,
     rn1 = rn2 = 0;
     unsigned i = 0;
     ull *Xi;
+    const int half = NUMBER_OF_CAHOTIC_MAPS / 2;
 
-    for (Xi = X, i = 0; i < 4; i++, Xi++) {
+    for (Xi = X, i = 0; i < half; i++, Xi++) {
         *Xi = RenyiMap(*Xi, β, λ);
         rn1 ^= *Xi;
     }
@@ -123,7 +125,7 @@ void renyi_array_generator(ull X[NUMBER_OF_CAHOTIC_MAPS], const unsigned int β,
     byte *rotation = (byte *)(void *)&rn1;
     byte *bit_toggle = rotation + 4;
 
-    for (Xi = X + 4, i = 0; i < 4; i++, Xi++, rotation++, bit_toggle++) {
+    for (Xi = X + half, i = half; i < NUMBER_OF_CAHOTIC_MAPS; i++, Xi++, rotation++, bit_toggle++) {
         *Xi = RenyiMap(*Xi, β, λ);
         *Xi = rotl64(*Xi, (*rotation) & 63);
         *Xi ^= 1 << ((*bit_toggle) & 63);
@@ -140,15 +142,14 @@ ull renyi_array_combine_maps_with_mask_and_replace(
     //
 
     const byte MOD_8_BIT_OPERATION_CONST = 0B00000111;
-    const byte MOD_255_BIT_OPERATION_CONST = 0B11111111;
     const ull mask = 0x00000000FFFFFFFFULL;
     static byte index_selector = 0;
 
     const byte index_1 = index_selector,
                index_2 = (index_selector + 1) & MOD_8_BIT_OPERATION_CONST;
     const ull Y = (X[index_1] & mask) | (X[index_2] & ~mask);
-    X[index_2] =
-        RenyiMap((X[index_2] + (Y & MOD_255_BIT_OPERATION_CONST)), β, λ);
+    X[index_1] =
+        RenyiMap(Y, β, λ);
 
     index_selector = index_2;
     return Y;
@@ -168,13 +169,38 @@ ull renyi_array_random_byte_select_with_replace(ull X[NUMBER_OF_CAHOTIC_MAPS],
     return Y;
 }
 
-inline ull logistic_renyi(const ull x, const byte β, const byte λ,
+inline ull logistic_renyi(const ull x, const ull β, const ull λ,
+                          const ull r,const ull t) {
+    const ull renyi = RenyiMap(x, β, λ);
+    return LogisticMapInt(renyi, r, t)  ^ renyi;
+}
+
+inline ull logistic_renyi_with_cycle(const ull x, ull *y, const ull β, const ull λ,
+                          const ull r,const ull t, const ull size) {
+    *y = RenyiMap(x, β, λ);
+    for(ull i = 1; i < size; ++i){
+        *(++y)=LogisticMapInt(*y, r, t);
+    }
+    return *y;
+}
+
+inline ull logistic_renyi_with_random_cycle(const ull x, ull *y, const ull β, const ull λ,
+                          const ull r,const ull t, const ull mask) {
+    const ull size = (x & mask) | 1;
+    *y = RenyiMap(x, β, λ);
+    for(ull i = 1; i < size; ++i){
+        *(++y)=LogisticMapInt(*y, r, t);
+    }
+    return *y;
+}
+
+inline ull logistic_renyi_xor(const ull x, const byte β, const byte λ,
                           const byte r) {
     static const double RESIZE_CNT = (double)0xFFFFFFFFFFFFFFFF;
     const ull renyi = RenyiMap(x, β, λ);
     const double renyi_dbl = renyi / RESIZE_CNT;
     const double logistic = LogisticMap(renyi_dbl, r);
-    return (ull)(logistic * RESIZE_CNT);
+    return ((ull)(logistic * RESIZE_CNT))^renyi;
 }
 
 inline ull logistic_renyi_xor_trayectories(const ull x, const byte β,

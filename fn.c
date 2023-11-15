@@ -114,13 +114,14 @@ inline ull logistic_renyi(const ull x, const ull β, const ull λ,
     return LogisticMapInt(renyi, r, t);
 }
 
-inline ull logistic_renyi_with_cycle(const ull x, ull *y, const ull β, const ull λ,
+inline ull logistic_renyi_with_cycle(const ull x, ull * const _y, const ull β, const ull λ,
                           const ull r,const ull t, const ull size) {
+    ull *y = _y;
     *y = RenyiMap(x, β, λ);
     for(ull i = 1; i < size; ++i){
-        *(++y)=LogisticMapInt(*y, r, t);
+        *(++y)=LogisticMapInt(*y, r, t) + 0xFFFF;
     }
-    return *y;
+    return *_y;
 }
 
 inline ull logistic_renyi_with_random_cycle(const ull x, ull *y, const ull β, const ull λ,

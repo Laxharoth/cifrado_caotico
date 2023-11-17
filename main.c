@@ -13,7 +13,7 @@
 /*
     Las funciones generate_random_file
         de 1-3 utilizan arreglos para varias condiciones iniciales
-        
+
         los de 4 - 7 utilizan  solo un valor como condicion inicial
 */
 
@@ -27,8 +27,8 @@ void generate_random_file_1(const char *file_path,
     }
     // Obtener condiciones iniciales
     ull X[NUMBER_OF_CAHOTIC_MAPS];
-    for(size_t i = 0; i < NUMBER_OF_CAHOTIC_MAPS * 2; ++i){
-        ((uint32_t*)X)[i] = rand();
+    for (size_t i = 0; i < NUMBER_OF_CAHOTIC_MAPS * 2; ++i) {
+        ((uint32_t *)X)[i] = rand();
     }
 
     const size_t chunk_size =
@@ -60,8 +60,8 @@ void generate_random_file_2(const char *file_path,
     }
     // Obtener condiciones iniciales
     ull X[NUMBER_OF_CAHOTIC_MAPS];
-    for(size_t i = 0; i < NUMBER_OF_CAHOTIC_MAPS * 2; ++i){
-        ((uint32_t*)X)[i] = rand();
+    for (size_t i = 0; i < NUMBER_OF_CAHOTIC_MAPS * 2; ++i) {
+        ((uint32_t *)X)[i] = rand();
     }
     ull Yi;
 
@@ -93,8 +93,8 @@ void generate_random_file_3(const char *file_path,
     }
     // Obtener condiciones iniciales
     ull X[NUMBER_OF_CAHOTIC_MAPS];
-    for(size_t i = 0; i < NUMBER_OF_CAHOTIC_MAPS * 2; ++i){
-        ((uint32_t*)X)[i] = rand();
+    for (size_t i = 0; i < NUMBER_OF_CAHOTIC_MAPS * 2; ++i) {
+        ((uint32_t *)X)[i] = rand();
     }
     ull Yi;
 
@@ -127,7 +127,7 @@ void generate_random_file_4(const char *file_path,
 
     srand(config->seed);
     ull X = rand();
-    X = (X<<32)|rand();
+    X = (X << 32) | rand();
 
     const size_t chunk_size =
         sizeof(ull);  // Tamaño de cada fragmento a escribir
@@ -162,7 +162,7 @@ void generate_random_file_5(const char *file_path,
     srand(config->seed);
 
     ull X = rand();
-    X = (X<<32)|rand();
+    X = (X << 32) | rand();
     ull Yi[255];
 
     ull size = config->n;
@@ -176,7 +176,8 @@ void generate_random_file_5(const char *file_path,
         // Generar datos aleatorios para el fragmento actual
         size_t chunk_bytes =
             (chunk_size < remaining_bytes) ? chunk_size : remaining_bytes;
-        X = logistic_renyi_with_cycle(X, Yi, config->beta, config->lambda, config->r, t, size);
+        X = logistic_renyi_with_cycle(X, Yi, config->beta, config->lambda,
+                                      config->r, t, size);
 
 #ifndef MEASURE_TIME_ONLY
         fwrite(&Yi, sizeof(unsigned char), chunk_bytes, file);
@@ -199,7 +200,7 @@ void generate_random_file_6(const char *file_path,
     srand(config->seed);
 
     ull X = rand();
-    X = (X<<32)|rand();
+    X = (X << 32) | rand();
     ull Yi[255];
 
     ull mask = 0b1111;
@@ -209,13 +210,14 @@ void generate_random_file_6(const char *file_path,
     ull t = (MAX_ULL / divisor);
     t = sqrtull(t);
     while (remaining_bytes > 0) {
-        const ull size = (X & mask)| 1; 
-    const size_t chunk_size =
-        sizeof(ull) * size;  // Tamaño de cada fragmento a escribir
+        const ull size = (X & mask) | 1;
+        const size_t chunk_size =
+            sizeof(ull) * size;  // Tamaño de cada fragmento a escribir
         // Generar datos aleatorios para el fragmento actual
         size_t chunk_bytes =
             (chunk_size < remaining_bytes) ? chunk_size : remaining_bytes;
-        X = logistic_renyi_with_random_cycle(X, Yi, config->beta, config->lambda, config->r, t, mask);
+        X = logistic_renyi_with_random_cycle(
+            X, Yi, config->beta, config->lambda, config->r, t, mask);
 
 #ifndef MEASURE_TIME_ONLY
         fwrite(&Yi, sizeof(unsigned char), chunk_bytes, file);
@@ -238,7 +240,7 @@ void generate_random_file_7(const char *file_path,
     srand(config->seed);
 
     ull X = rand();
-    X = (X<<32)|rand();
+    X = (X << 32) | rand();
 
     const size_t chunk_size =
         sizeof(ull);  // Tamaño de cada fragmento a escribir
@@ -261,7 +263,42 @@ void generate_random_file_7(const char *file_path,
     fclose(file);
 }
 
+void generate_random_file_8(const char *file_path,
+                            const Configuracion *config) {
+    typedef unsigned long long ull;
+    FILE *file = fopen(file_path, "wb");
+    if (file == NULL) {
+        printf("No se pudo abrir el archivo.\n");
+        return;
+    }
+    const size_t numeroMapas = 4;
 
+    ull Xn[numeroMapas], parametros[numeroMapas], epsilon = 65535, j = 5, H = 0;
+
+    for (size_t i = 0; i < numeroMapas; i++) {
+        srand(config->seed);
+        Xn[i] = rand();
+        Xn[i] = (Xn[i] << 32) | rand();
+    }
+
+    const size_t chunk_size =
+        sizeof(ull) * numeroMapas;  // Tamaño de cada fragmento a escribir
+    size_t remaining_bytes = config->file_size;
+    while (remaining_bytes > 0) {
+        // Generar datos aleatorios para el fragmento actual
+        size_t chunk_bytes =
+            (chunk_size < remaining_bytes) ? chunk_size : remaining_bytes;
+        SecureReal_TimeChaoticPartialEncryptionGenerator(
+            Xn, parametros, j, epsilon, &H, numeroMapas);
+
+#ifndef MEASURE_TIME_ONLY
+        fwrite(Xn, sizeof(unsigned char), chunk_bytes, file);
+#endif
+        remaining_bytes -= chunk_bytes;
+    }
+
+    fclose(file);
+}
 
 int main() {
     const Configuracion config = readConfigFile("config.txt");
@@ -293,6 +330,10 @@ int main() {
     print_time({
         const char *file_path = "random_data7.bin";
         generate_random_file_7(file_path, &config);
+    });
+    print_time({
+        const char *file_path = "random_data8.bin";
+        generate_random_file_8(file_path, &config);
     });
     return 0;
 }

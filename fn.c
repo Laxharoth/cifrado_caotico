@@ -141,15 +141,26 @@ ull logistic_generalized(ull x, ull h, ull k, ull factor_n) {
     return k - difference * difference * factor_n;
 }
 
-ull SecureReal_TimeChaoticPartialEncryptionGenerator(ull *Yn, ull *parametros,
-                                                     ull j, ull epsilon, ull *H,
-                                                     ull numMapas) {
+void SecureReal_TimeChaoticPartialEncryptionGenerator(ull *Yn, ull *parametros,
+                                                      ull j, ull epsilon,
+                                                      ull *H, ull numMapas) {
     ull newH = 0;
     for (size_t i = 0; i < numMapas; i++) {
         Yn[i] = RenyiMap(Yn[i], parametros[i], j) + (epsilon & (*H));
         newH ^= Yn[i];
     }
     *H = newH;
+}
+
+ull random_select_coupled_chaotic_map(ull *ref_position, ull *Yn,
+                                      ull *parametros, ull j, ull epsilon,
+                                      ull *ref_H, ull mask_numMapas) {
+    Yn[*ref_position] =
+        RenyiMap(Yn[*ref_position], parametros[*ref_position], j) +
+        (epsilon & (*ref_H));
+    *ref_H ^= Yn[*ref_position];
+    *ref_position = Yn[*ref_position] & mask_numMapas;
+    return Yn[*ref_position];
 }
 
 #endif /* FN_C */

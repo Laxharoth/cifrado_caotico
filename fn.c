@@ -153,14 +153,25 @@ void SecureReal_TimeChaoticPartialEncryptionGenerator(ull *Yn, ull *parametros,
 }
 
 ull random_select_coupled_chaotic_map(ull *ref_position, ull *Yn,
-                                      ull *parametros, ull j, ull epsilon,
-                                      ull *ref_H, ull mask_numMapas) {
-    Yn[*ref_position] =
+                                      ull *parametros, ull j,
+                                      ull mask_numMapas) {
+    ull ret_val = Yn[*ref_position] =
+        RenyiMap(Yn[*ref_position], parametros[*ref_position], j);
+    *ref_position = Yn[*ref_position] & mask_numMapas;
+    return ret_val;
+}
+
+ull random_select_coupled_chaotic_map_with_perturbation(ull *ref_position,
+                                                        ull *Yn,
+                                                        ull *parametros, ull j,
+                                                        ull epsilon, ull *ref_H,
+                                                        ull mask_numMapas) {
+    ull ret_val = Yn[*ref_position] =
         RenyiMap(Yn[*ref_position], parametros[*ref_position], j) +
         (epsilon & (*ref_H));
     *ref_H ^= Yn[*ref_position];
     *ref_position = Yn[*ref_position] & mask_numMapas;
-    return Yn[*ref_position];
+    return ret_val;
 }
 
 #endif /* FN_C */

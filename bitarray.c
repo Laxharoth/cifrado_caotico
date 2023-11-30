@@ -30,3 +30,11 @@ void readBitArrayFromFile(const char *filename, char *bitarray,
 char ON(const char *bitarray, size_t bit) {
     return bitarray[bit >> 3] & (1 << (bit & 7));
 }
+
+void SET_ON(char *bitarray, size_t bit) {
+    bitarray[bit >> 3] |= ((char)(1 << (bit & 7)));
+}
+
+void SET_OFF(char *bitarray, size_t bit) {
+    bitarray[bit >> 3] &= ~((char)(1 << (bit & 7)));
+}

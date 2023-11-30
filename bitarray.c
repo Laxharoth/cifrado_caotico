@@ -1,6 +1,18 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+char ON(const char *bitarray, size_t bit) {
+    return bitarray[bit >> 3] & (1 << (bit & 7));
+}
+
+void SET_ON(char *bitarray, size_t bit) {
+    bitarray[bit >> 3] |= (1 << (bit & 7));
+}
+
+void SET_OFF(char *bitarray, size_t bit) {
+    bitarray[bit >> 3] &= ~(1 << (bit & 7));
+}
+
 void readBitArrayFromFile(const char *filename, char *bitarray,
                           size_t max_size) {
     FILE *file = fopen(filename, "r");
@@ -15,26 +27,14 @@ void readBitArrayFromFile(const char *filename, char *bitarray,
     unsigned char one_mask = ((unsigned char)1);
     while ((c = fgetc(file)) != EOF && i < max_size) {
         if (c == '0') {
-            bitarray[(i >> 3)] &= ~((one_mask) << (i & 7));
+            SET_OFF(bitarray, i);
             i++;
         }
         if (c == '1') {
-            bitarray[(i >> 3)] |= (one_mask) << (i & 7);
+            SET_ON(bitarray, i);
             i++;
         }
     }
 
     fclose(file);
-}
-
-char ON(const char *bitarray, size_t bit) {
-    return bitarray[bit >> 3] & (1 << (bit & 7));
-}
-
-void SET_ON(char *bitarray, size_t bit) {
-    bitarray[bit >> 3] |= ((char)(1 << (bit & 7)));
-}
-
-void SET_OFF(char *bitarray, size_t bit) {
-    bitarray[bit >> 3] &= ~((char)(1 << (bit & 7)));
 }

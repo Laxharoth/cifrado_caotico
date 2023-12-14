@@ -402,7 +402,7 @@ void generate_random_file_11(const char *file_path,
         size_t chunk_bytes =
             (chunk_size < remaining_bytes) ? chunk_size : remaining_bytes;
         rng_generated_buffer[index++] = random_select_coupled_chaotic_map(
-            &position, Xn, parametros, j, 0b111);
+            &position, Xn, parametros, j, 0b11);
 
         remaining_bytes -= chunk_bytes;
     }
@@ -443,8 +443,9 @@ void generate_random_file_12(const char *file_path,
         // Generar datos aleatorios para el fragmento actual
         size_t chunk_bytes =
             (chunk_size < remaining_bytes) ? chunk_size : remaining_bytes;
-        rng_generated_buffer[index++] = random_select_coupled_chaotic_map_with_perturbation(
-            &position, Xn, parametros, j, epsilon, &H, 0b111);
+        rng_generated_buffer[index++] =
+            random_select_coupled_chaotic_map_with_perturbation(
+                &position, Xn, parametros, j, epsilon, &H, 0b11);
 
         remaining_bytes -= chunk_bytes;
     }
@@ -456,7 +457,108 @@ void generate_random_file_12(const char *file_path,
     free(rng_generated_buffer);
     fclose(file);
 }
+void generate_random_file_13(const char *file_path,
+                             const Configuracion *config) {
+    typedef unsigned long long ull;
+    FILE *file = fopen(file_path, "wb");
+    if (file == NULL) {
+        printf("No se pudo abrir el archivo.\n");
+        return;
+    }
+    const size_t numeroMapas = 4;
+    ull *rng_generated_buffer = (ull *)malloc(config->file_size);
+    ull Xn[numeroMapas * config->n], parametros[numeroMapas], epsilon = 65535,
+                                                              lambda = 5, H = 0;
+    chaotic_lookup_table roulete[numeroMapas];
+    srand(config->seed);
+    for (size_t i = 0; i < numeroMapas; i++) {
+        Xn[i * config->n] = rand();
+        Xn[i * config->n] = (Xn[i] << 32) | rand();
+        parametros[i] = (rand() % 3000) + 5;
+        for (size_t j = 1; j < config->n; ++j) {
+            Xn[i * config->n + j] =
+                RenyiMap(Xn[i * config->n + j - 1], parametros[i], lambda);
+        }
+        roulete[i].lookup_table = Xn;
+        roulete[i].lu_table_size = config->n;
+        roulete[i].lu_table_mask = config->n - 1;
+        roulete[i].last_generated = Xn[config->n - 1];
+    }
 
+    const size_t chunk_size =
+        sizeof(ull);  // Tamaño de cada fragmento a escribir
+    size_t remaining_bytes = config->file_size;
+    ull position = 0;
+    ull index = 0;
+    while (remaining_bytes > 0) {
+        // Generar datos aleatorios para el fragmento actual
+        size_t chunk_bytes =
+            (chunk_size < remaining_bytes) ? chunk_size : remaining_bytes;
+        rng_generated_buffer[index++] =
+            random_select_coupled_chaotic_map_lookuptable(
+                &position, roulete, parametros, lambda, 0b11, epsilon, &H);
+
+        remaining_bytes -= chunk_bytes;
+    }
+#ifndef MEASURE_TIME_ONLY
+    fwrite(rng_generated_buffer, sizeof(unsigned char), config->file_size,
+           file);
+#endif
+
+    free(rng_generated_buffer);
+    fclose(file);
+}
+void generate_random_file_14(const char *file_path,
+                             const Configuracion *config) {
+    typedef unsigned long long ull;
+    FILE *file = fopen(file_path, "wb");
+    if (file == NULL) {
+        printf("No se pudo abrir el archivo.\n");
+        return;
+    }
+    const size_t numeroMapas = 4;
+    ull *rng_generated_buffer = (ull *)malloc(config->file_size);
+    ull Xn[numeroMapas * (config->n + 1)], parametros[numeroMapas],
+        epsilon = 65535, j = 5, H = 0;
+    chaotic_lookup_table roulete[numeroMapas];
+    srand(config->seed);
+    for (size_t i = 0; i < numeroMapas; i++) {
+        Xn[i * (config->n + 1)] = rand();
+        Xn[i * (config->n + 1)] = (Xn[i] << 32) | rand();
+        parametros[i] = (rand() % 3000) + 5;
+        for (size_t j = 1; j < (config->n + 1); ++j) {
+            Xn[i * (config->n + 1) + j] =
+                RenyiMap(Xn[i * (config->n + 1) + j - 1], parametros[i], j);
+        }
+        roulete[i].lookup_table = Xn;
+        roulete[i].lu_table_size = config->n;
+        roulete[i].lu_table_mask = (config->n << 1) - 1;
+        roulete[i].last_generated = Xn[config->n - 1];
+    }
+
+    const size_t chunk_size =
+        sizeof(ull);  // Tamaño de cada fragmento a escribir
+    size_t remaining_bytes = config->file_size;
+    ull position = 0;
+    ull index = 0;
+    while (remaining_bytes > 0) {
+        // Generar datos aleatorios para el fragmento actual
+        size_t chunk_bytes =
+            (chunk_size < remaining_bytes) ? chunk_size : remaining_bytes;
+        rng_generated_buffer[index++] =
+            random_select_coupled_chaotic_map_lookuptable_byte(
+                &position, roulete, parametros, j, 0b11, epsilon, &H);
+
+        remaining_bytes -= chunk_bytes;
+    }
+#ifndef MEASURE_TIME_ONLY
+    fwrite(rng_generated_buffer, sizeof(unsigned char), config->file_size,
+           file);
+#endif
+
+    free(rng_generated_buffer);
+    fclose(file);
+}
 
 int main() {
     const Configuracion config = readConfigFile("config.txt");
@@ -533,8 +635,20 @@ int main() {
     }
     if (ON(bitarray, 12)) {
         print_time({
-            const char *file_path = "random_data11.bin";
+            const char *file_path = "random_data12.bin";
             generate_random_file_12(file_path, &config);
+        });
+    }
+    if (ON(bitarray, 13)) {
+        print_time({
+            const char *file_path = "random_data13.bin";
+            generate_random_file_13(file_path, &config);
+        });
+    }
+    if (ON(bitarray, 14)) {
+        print_time({
+            const char *file_path = "random_data14.bin";
+            generate_random_file_14(file_path, &config);
         });
     }
     return 0;

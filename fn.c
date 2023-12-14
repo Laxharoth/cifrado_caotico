@@ -174,4 +174,46 @@ ull random_select_coupled_chaotic_map_with_perturbation(ull *ref_position,
     return ret_val;
 }
 
+struct _chaotic_lookup_table {
+    ull *lookup_table;
+    ull lu_table_mask;
+    ull lu_table_size;
+    ull last_generated;
+};
+typedef struct _chaotic_lookup_table chaotic_lookup_table;
+
+ull random_select_coupled_chaotic_map_lookuptable(ull *ref_roulete_position,
+                                                  chaotic_lookup_table *roulete,
+                                                  ull *parametros, ull j,
+                                                  ull mask_numMapas,
+                                                  ull epsilon, ull *ref_H) {
+    chaotic_lookup_table *Yn = &roulete[*ref_roulete_position];
+    const ull parametro = parametros[*ref_roulete_position];
+    Yn->last_generated =
+        RenyiMap(Yn->last_generated, parametro, j) + (epsilon & (*ref_H));
+    *ref_H ^= Yn->last_generated;
+    *ref_roulete_position = Yn->last_generated & mask_numMapas;
+    const ull lu_table_position = Yn->last_generated & Yn->lu_table_mask;
+    const ull ret_val = Yn->lookup_table[lu_table_position];
+    Yn->lookup_table[lu_table_position] = Yn->last_generated;
+    return ret_val;
+}
+
+ull random_select_coupled_chaotic_map_lookuptable_byte(
+    ull *ref_roulete_position, chaotic_lookup_table *roulete, ull *parametros,
+    ull j, ull mask_numMapas, ull epsilon, ull *ref_H) {
+    chaotic_lookup_table *Yn = &roulete[*ref_roulete_position];
+    const ull parametro = parametros[*ref_roulete_position];
+    Yn->last_generated =
+        RenyiMap(Yn->last_generated, parametro, j) + (epsilon & (*ref_H));
+    *ref_H ^= Yn->last_generated;
+    *ref_roulete_position = Yn->last_generated & mask_numMapas;
+    const ull lu_table_position = Yn->last_generated & Yn->lu_table_mask;
+    const ull ret_val =
+        *((ull *)(((unsigned char *)(Yn->lookup_table)) + lu_table_position));
+    *((ull *)(((unsigned char *)(Yn->lookup_table)) + lu_table_position)) =
+        Yn->last_generated;
+    return ret_val;
+}
+
 #endif /* FN_C */

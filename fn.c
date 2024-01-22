@@ -191,7 +191,24 @@ struct _chaotic_lookup_table {
 };
 typedef struct _chaotic_lookup_table chaotic_lookup_table;
 
+/**
+ * @brief Generates un numero aleatorio usando un ruleta de lookup tables, el
+ * numero seleccionado en la tabla es reemplazado
+ *
+ * @param ref_roulete_position(puntero) Determina cual tabla en la ruleta se va
+ * a utilizar
+ * @param lu_table_position La posición en la tabla del numero que se selecciona
+ * @param roulete Un arreglo de chaotic_lookup_tableS
+ * @param parametros Una lista con los parametros de los mapas renyi
+ * @param j El parametro de división para el mapa renyi
+ * @param mask_numMapas Una mascara para hacer una operación modulo rápida y
+ * seleccionar la casilla de la ruleta
+ * @param epsilon Coeficiente de perturbación maxima
+ * @param ref_H Coeficiente de perturbación
+ * @return ull
+ */
 ull random_select_coupled_chaotic_map_lookuptable(ull *ref_roulete_position,
+                                                  ull lu_table_position,
                                                   chaotic_lookup_table *roulete,
                                                   ull *parametros, ull j,
                                                   ull mask_numMapas,
@@ -202,22 +219,40 @@ ull random_select_coupled_chaotic_map_lookuptable(ull *ref_roulete_position,
         RenyiMap(Yn->last_generated, parametro, j) + (epsilon & (*ref_H));
     *ref_H ^= Yn->last_generated;
     *ref_roulete_position = Yn->last_generated & mask_numMapas;
-    const ull lu_table_position = Yn->last_generated & Yn->lu_table_mask;
     const ull ret_val = Yn->lookup_table[lu_table_position];
     Yn->lookup_table[lu_table_position] = Yn->last_generated;
     return ret_val;
 }
 
+/**
+ * @brief Generates un numero aleatorio usando un ruleta de lookup tables, el
+ * numero seleccionado en la tabla es reemplazado, en lugar se seleccionar el
+ * numero por posición selecciona un byte de la tabla y utiliza los 8 bytes a
+ * partir del seleccionado.
+ *
+ * @param ref_roulete_position(puntero) Determina cual tabla en la ruleta se va
+ * a utilizar
+ * @param lu_table_position La posición en la tabla del numero que se selecciona
+ * @param roulete Un arreglo de chaotic_lookup_tableS
+ * @param parametros Una lista con los parametros de los mapas renyi
+ * @param j El parametro de división para el mapa renyi
+ * @param mask_numMapas Una mascara para hacer una operación modulo rápida y
+ * seleccionar la casilla de la ruleta
+ * @param epsilon Coeficiente de perturbación maxima
+ * @param ref_H Coeficiente de perturbación
+ * @return ull
+ */
+
 ull random_select_coupled_chaotic_map_lookuptable_byte(
-    ull *ref_roulete_position, chaotic_lookup_table *roulete, ull *parametros,
-    ull j, ull mask_numMapas, ull epsilon, ull *ref_H) {
+    ull *ref_roulete_position, ull lu_table_position,
+    chaotic_lookup_table *roulete, ull *parametros, ull renyi_j,
+    ull mask_numMapas, ull epsilon, ull *ref_H) {
     chaotic_lookup_table *Yn = &roulete[*ref_roulete_position];
     const ull parametro = parametros[*ref_roulete_position];
     Yn->last_generated =
-        RenyiMap(Yn->last_generated, parametro, j) + (epsilon & (*ref_H));
+        RenyiMap(Yn->last_generated, parametro, renyi_j) + (epsilon & (*ref_H));
     *ref_H ^= Yn->last_generated;
     *ref_roulete_position = Yn->last_generated & mask_numMapas;
-    const ull lu_table_position = Yn->last_generated & Yn->lu_table_mask;
     const ull ret_val =
         *((ull *)(((unsigned char *)(Yn->lookup_table)) + lu_table_position));
     *((ull *)(((unsigned char *)(Yn->lookup_table)) + lu_table_position)) =

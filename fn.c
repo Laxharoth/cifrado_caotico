@@ -31,6 +31,15 @@ ull sqrtull(ull a) {
     }
 }
 
+ull countBitsSet(ull num) {
+    int count = 0;
+    while (num) {
+        count += num & 1;
+        num >>= 1;
+    }
+    return count;
+}
+
 #define RenyiMap(X, β, λ) (X * β) + (X >> λ)
 #define LogisticMap(X, r) r *X * (1.0 - X)
 #define LogisticMapInt(X, r, t) r *X *(t - X)

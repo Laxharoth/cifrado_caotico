@@ -260,4 +260,87 @@ ull random_select_coupled_chaotic_map_lookuptable_byte(
     return ret_val;
 }
 
+/**
+ * @brief Genera una secuencia de numeros aleatorios, para ello utiliza una
+ * ruleta en la que cada casilla contiene una tabla de numeros pregenerados
+ * utilizando mapas caoticos. Despues de generar la secuencia, un numero de dos
+ * mapas contiguos para generar un numero adicional en la secuencia.
+ * Cada numero usado es reemplazado por el mapa correspondiente
+ *
+ * @param ref_roulete_position (puntero) Determina cual tabla en la ruleta se va
+ * a utilizar
+ * @param roulete Un arreglo de chaotic_lookup_tableS
+ * @param mask_numMapas Una mascara para hacer una operación modulo rápida y
+ * seleccionar la casilla de la ruleta
+ * @param mask_tablesize Una mascara para hacer una operación modulo rápida y
+ * seleccionar la posición de la tabla
+ * @param lu_table_position_index_list una lista de numerós usados para
+ * seleccionar la posición de los numeros en la tabla
+ * @param mask_lut_pos_indxsize Una mascara para hacer una operación modulo
+ * rápida y evitar un desbordamiento en la tabla.
+ * @param parametros Una lista con los parametros de los mapas renyi
+ * @param j El parametro de división para el mapa renyi
+ * @param epsilon Coeficiente de perturbación maxima
+ * @param ref_H Coeficiente de perturbación
+ * @param placeholder Arreglo donde se guardan los numeros generados
+ * @param placeholder_size Tamaño del placeholder
+ * @param number_of_generated_numbers (ret) Cantidad de numeros que se generaron
+ * por la función
+ * @param perturbation_size_auxiliar
+ */
+void random_select_coupled_chaotic_map_lookuptable_horizontal_perturbation(
+    ull *const ref_roulete_position, chaotic_lookup_table *const roulete,
+    ull mask_numMapas, ull mask_tablesize,
+    ull *const lu_table_position_index_list, ull mask_lut_pos_indxsize,
+    ull *const parametros, ull j, ull epsilon, ull *const ref_H,
+    ull *const placeholder, ull placeholder_size,
+    ull *const number_of_generated_numbers, ull perturbation_size_auxiliar) {
+    const ull ull_byte_size_mask = sizeof(ull) - 1;
+    *number_of_generated_numbers =
+        min(placeholder_size, 150 + perturbation_size_auxiliar);
+    ull *ptr_placeholder = placeholder;
+    ull lu_table_position_index = 0, lu_table_position;
+    ull ull_byte_position_mask = 0;
+    ull iter;
+
+    for (iter = 0; iter < *number_of_generated_numbers - 1;
+         ++iter, ++ptr_placeholder) {
+        lu_table_position =
+            lu_table_position_index_list[iter & mask_lut_pos_indxsize] &
+            mask_tablesize;
+        lu_table_position_index =
+            lu_table_position_index + 1 & mask_lut_pos_indxsize;
+        *ptr_placeholder = random_select_coupled_chaotic_map_lookuptable(
+            ref_roulete_position, lu_table_position, roulete, parametros, j,
+            mask_numMapas, epsilon, ref_H);
+    }
+    *ref_roulete_position =
+        lu_table_position_index_list[iter++ & mask_lut_pos_indxsize] &
+        mask_numMapas;
+    lu_table_position_index =
+        lu_table_position_index + 1 & mask_lut_pos_indxsize;
+    lu_table_position =
+        lu_table_position_index_list[iter++ & mask_lut_pos_indxsize] &
+        mask_tablesize;
+    lu_table_position_index =
+        lu_table_position_index + 1 & mask_lut_pos_indxsize;
+    ull_byte_position_mask =
+        (~(0ull)) >>
+        (lu_table_position_index_list[iter++ & mask_lut_pos_indxsize] &
+         ull_byte_size_mask);
+
+    ull replace_value = random_select_coupled_chaotic_map_lookuptable(
+        ref_roulete_position, lu_table_position, roulete, parametros, j,
+        mask_numMapas, epsilon, ref_H);
+
+    ull *num1 = &roulete[*ref_roulete_position].lookup_table[lu_table_position];
+    ull *num2 = &roulete[((*ref_roulete_position) + 1) & mask_numMapas]
+                     .lookup_table[lu_table_position];
+    *ptr_placeholder =
+        (*num1 & ull_byte_position_mask) | (*num2 & ~ull_byte_position_mask);
+    *num1 = (replace_value & ull_byte_position_mask) |
+            (*num1 & +~ull_byte_position_mask);
+    *num2 = (replace_value & ~ull_byte_position_mask) |
+            (*num2 & +ull_byte_position_mask);
+}
 #endif /* FN_C */

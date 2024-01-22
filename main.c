@@ -2,6 +2,7 @@
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 
 #include "ConfigStructure.h"
 #include "bitarray.c"
@@ -466,11 +467,15 @@ void generate_random_file_13(const char *file_path,
         return;
     }
     const size_t numeroMapas = 4;
-    ull *rng_generated_buffer = (ull *)malloc(config->file_size);
+    const ull num_mapas_mask = 0b11;
+    unsigned char *const rng_generated_buffer =
+        (unsigned char *)malloc(config->file_size);
+    unsigned char *rng_generated_buffer_write = rng_generated_buffer;
     ull Xn[numeroMapas * config->n], parametros[numeroMapas], epsilon = 65535,
                                                               lambda = 5, H = 0;
     chaotic_lookup_table roulete[numeroMapas];
     srand(config->seed);
+    const ull table_mask = config->n - 1;
     for (size_t i = 0; i < numeroMapas; i++) {
         Xn[i * config->n] = rand();
         Xn[i * config->n] = (Xn[i] << 32) | rand();
@@ -481,7 +486,7 @@ void generate_random_file_13(const char *file_path,
         }
         roulete[i].lookup_table = Xn;
         roulete[i].lu_table_size = config->n;
-        roulete[i].lu_table_mask = config->n - 1;
+        roulete[i].lu_table_mask = table_mask;
         roulete[i].last_generated = Xn[config->n - 1];
     }
 
@@ -490,15 +495,58 @@ void generate_random_file_13(const char *file_path,
     size_t remaining_bytes = config->file_size;
     ull position = 0;
     ull index = 0;
-    while (remaining_bytes > 0) {
-        // Generar datos aleatorios para el fragmento actual
-        size_t chunk_bytes =
-            (chunk_size < remaining_bytes) ? chunk_size : remaining_bytes;
-        rng_generated_buffer[index++] =
-            random_select_coupled_chaotic_map_lookuptable(
-                &position, roulete, parametros, lambda, 0b11, epsilon, &H);
 
-        remaining_bytes -= chunk_bytes;
+    ull lu_table_position_list[config->n];
+    const ull increase_shift_lut_pos_list = countBitsSet(table_mask);
+    ull current_shift_lut_pos_list;
+    ull i_lut_pos_list_index;
+    ull select_map_for_lut_pos_list = 0;
+    ull select_indx_for_lut_pos_list = 0;
+    while (remaining_bytes > 0) {
+        // Crear lista de numeros aleatorios para seleccionar el indice del mapa
+        const size_t table_1 = roulete[select_map_for_lut_pos_list]
+                                   .lookup_table[select_indx_for_lut_pos_list] &
+                               num_mapas_mask;
+        select_map_for_lut_pos_list =
+            (select_map_for_lut_pos_list + 1) & num_mapas_mask;
+        select_indx_for_lut_pos_list =
+            (select_indx_for_lut_pos_list + 1) & table_mask;
+        const size_t table_2 = roulete[select_map_for_lut_pos_list]
+                                   .lookup_table[select_indx_for_lut_pos_list] &
+                               num_mapas_mask;
+        select_map_for_lut_pos_list =
+            (select_map_for_lut_pos_list + 1) & num_mapas_mask;
+        select_indx_for_lut_pos_list =
+            (select_indx_for_lut_pos_list + 1) & table_mask;
+        for (ull i = 0; i < config->n; ++i) {
+            lu_table_position_list[i] = roulete[table_1].lookup_table[i] ^
+                                        roulete[table_2].lookup_table[i];
+        }
+
+        for (i_lut_pos_list_index = 0;
+             i_lut_pos_list_index < config->n && remaining_bytes;
+             ++i_lut_pos_list_index) {
+            current_shift_lut_pos_list = 0;
+            for (ull current_shift_lut_pos_list = 0;
+                 current_shift_lut_pos_list < (sizeof(ull) << 3) &&
+                 remaining_bytes;
+                 current_shift_lut_pos_list += increase_shift_lut_pos_list) {
+                size_t chunk_bytes = (chunk_size < remaining_bytes)
+                                         ? chunk_size
+                                         : remaining_bytes;
+                const ull generated =
+                    random_select_coupled_chaotic_map_lookuptable(
+                        &position,
+                        (lu_table_position_list[i_lut_pos_list_index] >>
+                         current_shift_lut_pos_list) &
+                            table_mask,
+                        roulete, parametros, lambda, num_mapas_mask, epsilon,
+                        &H);
+                memcpy(rng_generated_buffer_write, &generated, chunk_bytes);
+                rng_generated_buffer_write += chunk_bytes;
+                remaining_bytes -= chunk_bytes;
+            }
+        }
     }
 #ifndef MEASURE_TIME_ONLY
     fwrite(rng_generated_buffer, sizeof(unsigned char), config->file_size,
@@ -517,7 +565,11 @@ void generate_random_file_14(const char *file_path,
         return;
     }
     const size_t numeroMapas = 4;
-    ull *rng_generated_buffer = (ull *)malloc(config->file_size);
+    const ull num_mapas_mask = 0b11;
+    const ull table_mask = (config->n << 3) - 1;
+    unsigned char *const rng_generated_buffer =
+        (unsigned char *)malloc(config->file_size);
+    unsigned char *rng_generated_buffer_write = rng_generated_buffer;
     ull Xn[numeroMapas * (config->n + 1)], parametros[numeroMapas],
         epsilon = 65535, j = 5, H = 0;
     chaotic_lookup_table roulete[numeroMapas];
@@ -530,10 +582,10 @@ void generate_random_file_14(const char *file_path,
             Xn[i * (config->n + 1) + j] =
                 RenyiMap(Xn[i * (config->n + 1) + j - 1], parametros[i], j);
         }
-        roulete[i].lookup_table = Xn;
+        roulete[i].lookup_table = Xn + i * (config->n + 1);
         roulete[i].lu_table_size = config->n;
-        roulete[i].lu_table_mask = (config->n << 1) - 1;
-        roulete[i].last_generated = Xn[config->n - 1];
+        roulete[i].lu_table_mask = table_mask;
+        roulete[i].last_generated = Xn[i * (config->n + 1) + config->n - 1];
     }
 
     const size_t chunk_size =
@@ -541,14 +593,123 @@ void generate_random_file_14(const char *file_path,
     size_t remaining_bytes = config->file_size;
     ull position = 0;
     ull index = 0;
+    ull lu_table_position_list[config->n];
+    const ull increase_shift_lut_pos_list = countBitsSet(table_mask);
+    ull current_shift_lut_pos_list;
+    ull i_lut_pos_list_index;
+    ull select_map_for_lut_pos_list = 0;
+    ull select_indx_for_lut_pos_list = 0;
     while (remaining_bytes > 0) {
+        // Crear lista de numeros aleatorios para seleccionar el indice del mapa
+        const size_t table_1 = roulete[select_map_for_lut_pos_list]
+                                   .lookup_table[select_indx_for_lut_pos_list] &
+                               num_mapas_mask;
+        select_map_for_lut_pos_list =
+            (select_map_for_lut_pos_list + 1) & num_mapas_mask;
+        select_indx_for_lut_pos_list =
+            (select_indx_for_lut_pos_list + 1) & table_mask;
+        const size_t table_2 = roulete[select_map_for_lut_pos_list]
+                                   .lookup_table[select_indx_for_lut_pos_list] &
+                               num_mapas_mask;
+        select_map_for_lut_pos_list =
+            (select_map_for_lut_pos_list + 1) & num_mapas_mask;
+        select_indx_for_lut_pos_list =
+            (select_indx_for_lut_pos_list + 1) & table_mask;
         // Generar datos aleatorios para el fragmento actual
+        for (ull i = 0; i < config->n; ++i) {
+            lu_table_position_list[i] = roulete[table_1].lookup_table[i] ^
+                                        roulete[table_2].lookup_table[i];
+        }
+        // --
+        for (i_lut_pos_list_index = 0;
+             i_lut_pos_list_index < config->n && remaining_bytes;
+             ++i_lut_pos_list_index) {
+            current_shift_lut_pos_list = 0;
+            for (ull current_shift_lut_pos_list = 0;
+                 current_shift_lut_pos_list < (sizeof(ull) << 3) &&
+                 remaining_bytes;
+                 current_shift_lut_pos_list += increase_shift_lut_pos_list) {
+                size_t chunk_bytes = (chunk_size < remaining_bytes)
+                                         ? chunk_size
+                                         : remaining_bytes;
+                const ull generated =
+                    random_select_coupled_chaotic_map_lookuptable_byte(
+                        &position,
+                        (lu_table_position_list[i_lut_pos_list_index] >>
+                         current_shift_lut_pos_list) &
+                            table_mask,
+                        roulete, parametros, j, num_mapas_mask, epsilon, &H);
+                memcpy(rng_generated_buffer_write, &generated, chunk_bytes);
+                rng_generated_buffer_write += chunk_bytes;
+                remaining_bytes -= chunk_bytes;
+            }
+        }
+    }
+#ifndef MEASURE_TIME_ONLY
+    fwrite(rng_generated_buffer, sizeof(unsigned char), config->file_size,
+           file);
+#endif
+
+    free(rng_generated_buffer);
+    fclose(file);
+}
+
+void generate_random_file_15(const char *file_path,
+                             const Configuracion *config) {
+    typedef unsigned long long ull;
+    FILE *file = fopen(file_path, "wb");
+    if (file == NULL) {
+        printf("No se pudo abrir el archivo.\n");
+        return;
+    }
+    const size_t numeroMapas = 4;
+    const ull num_mapas_mask = 0b11;
+    unsigned char *const rng_generated_buffer =
+        (unsigned char *)malloc(config->file_size);
+    unsigned char *rng_generated_buffer_write = rng_generated_buffer;
+    ull Xn[numeroMapas * config->n], parametros[numeroMapas], epsilon = 65535,
+                                                              lambda = 5, H = 0;
+    chaotic_lookup_table roulete[numeroMapas];
+    srand(config->seed);
+    const ull table_mask = config->n - 1;
+    for (size_t i = 0; i < numeroMapas; i++) {
+        Xn[i * config->n] = rand();
+        Xn[i * config->n] = (Xn[i] << 32) | rand();
+        parametros[i] = (rand() % 3000) + 5;
+        for (size_t j = 1; j < config->n; ++j) {
+            Xn[i * config->n + j] =
+                RenyiMap(Xn[i * config->n + j - 1], parametros[i], lambda);
+        }
+        roulete[i].lookup_table = Xn;
+        roulete[i].lu_table_size = config->n;
+        roulete[i].lu_table_mask = table_mask;
+        roulete[i].last_generated = Xn[config->n - 1];
+    }
+
+    size_t remaining_bytes = config->file_size;
+    ull position = 0;
+    ull index = 0;
+
+    const ull increase_shift_lut_pos_list = countBitsSet(table_mask);
+    ull current_shift_lut_pos_list;
+    ull i_lut_pos_list_index;
+    ull select_map_for_lut_pos_list = 0;
+    ull select_indx_for_lut_pos_list = 0;
+    ull generated[410];
+    const ull mask_lut_pos_indxsize =
+        (table_mask << countBitsSet(num_mapas_mask)) | num_mapas_mask;
+    ull number_of_generated_numbers = 0;
+    while (remaining_bytes > 0) {
+        random_select_coupled_chaotic_map_lookuptable_horizontal_perturbation(
+            &position, roulete, num_mapas_mask, table_mask, Xn,
+            mask_lut_pos_indxsize, parametros, lambda, epsilon, &H, generated,
+            405, &number_of_generated_numbers,
+            Xn[number_of_generated_numbers & mask_lut_pos_indxsize] & 0xFF);
+        const ull chunk_size = sizeof(ull) * number_of_generated_numbers;
         size_t chunk_bytes =
             (chunk_size < remaining_bytes) ? chunk_size : remaining_bytes;
-        rng_generated_buffer[index++] =
-            random_select_coupled_chaotic_map_lookuptable_byte(
-                &position, roulete, parametros, j, 0b11, epsilon, &H);
-
+        memcpy(rng_generated_buffer_write, generated, chunk_bytes);
+        rng_generated_buffer_write += chunk_bytes;
         remaining_bytes -= chunk_bytes;
     }
 #ifndef MEASURE_TIME_ONLY
@@ -562,94 +723,42 @@ void generate_random_file_14(const char *file_path,
 
 int main() {
     const Configuracion config = readConfigFile("config.txt");
-    char bitarray[10];
-    readBitArrayFromFile("rng_selector", bitarray, 80);
+    const unsigned bitarray_size = 10;
+    const unsigned bitarray_size_in_bits = bitarray_size * 8;
+    char bitarray[bitarray_size];
+    memset(bitarray, 0, bitarray_size);
+    readBitArrayFromFile("rng_selector", bitarray, bitarray_size_in_bits);
     printf("%d\n", bitarray[0]);
     printf("%d\n", bitarray[1]);
 
-    if (ON(bitarray, 1)) {
-        print_time({
-            const char *file_path = "random_data1.bin";
-            generate_random_file_1(file_path, &config);
-        });
-    }
-    if (ON(bitarray, 2)) {
-        print_time({
-            const char *file_path = "random_data2.bin";
-            generate_random_file_2(file_path, &config);
-        });
-    }
-    if (ON(bitarray, 3)) {
-        print_time({
-            const char *file_path = "random_data3.bin";
-            generate_random_file_3(file_path, &config);
-        });
-    }
-    if (ON(bitarray, 4)) {
-        print_time({
-            const char *file_path = "random_data4.bin";
-            generate_random_file_4(file_path, &config);
-        });
-    }
-    if (ON(bitarray, 5)) {
-        print_time({
-            const char *file_path = "random_data5.bin";
-            generate_random_file_5(file_path, &config);
-        });
-    }
-    if (ON(bitarray, 6)) {
-        print_time({
-            const char *file_path = "random_data6.bin";
-            generate_random_file_6(file_path, &config);
-        });
-    }
-    if (ON(bitarray, 7)) {
-        print_time({
-            const char *file_path = "random_data7.bin";
-            generate_random_file_7(file_path, &config);
-        });
-    }
-    if (ON(bitarray, 8)) {
-        print_time({
-            const char *file_path = "random_data8.bin";
-            generate_random_file_8(file_path, &config);
-        });
-    }
-    if (ON(bitarray, 9)) {
-        print_time({
-            const char *file_path = "random_data9.bin";
-            generate_random_file_9(file_path, &config);
-        });
-    }
-    if (ON(bitarray, 10)) {
-        print_time({
-            const char *file_path = "random_data10.bin";
-            generate_random_file_10(file_path, &config);
-        });
-    }
-    if (ON(bitarray, 11)) {
-        print_time({
-            const char *file_path = "random_data11.bin";
-            generate_random_file_11(file_path, &config);
-        });
-    }
-    if (ON(bitarray, 12)) {
-        print_time({
-            const char *file_path = "random_data12.bin";
-            generate_random_file_12(file_path, &config);
-        });
-    }
-    if (ON(bitarray, 13)) {
-        print_time({
-            const char *file_path = "random_data13.bin";
-            generate_random_file_13(file_path, &config);
-        });
-    }
-    if (ON(bitarray, 14)) {
-        print_time({
-            const char *file_path = "random_data14.bin";
-            generate_random_file_14(file_path, &config);
-        });
+    void (*generator[])(const char *file_path, const Configuracion *config) = {
+        generate_random_file_1,  generate_random_file_2,
+        generate_random_file_3,  generate_random_file_4,
+        generate_random_file_5,  generate_random_file_6,
+        generate_random_file_7,  generate_random_file_8,
+        generate_random_file_9,  generate_random_file_10,
+        generate_random_file_11, generate_random_file_12,
+        generate_random_file_13, generate_random_file_14,
+        generate_random_file_15,
+    };
+
+    char name[20];
+    const char prefix[] = "random_data";
+    char number[10];
+    const char sufix[] = ".bin";
+    const unsigned num_rng = sizeof(generator) / 8;
+
+    memset(name, '\0', 20);
+
+    for (unsigned i = 0; i < num_rng; ++i) {
+        sprintf(number, "%u", i + 1);
+        strcpy(name, prefix);
+        strcat(name, number);
+        strcat(name, sufix);
+        if (ON(bitarray, i)) {
+            printf("%s:\n\t", name);
+            print_time({ generator[i](name, &config); });
+        }
     }
     return 0;
 }

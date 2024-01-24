@@ -72,3 +72,9 @@ MyCipher2-random.c
 makefile
 CIMAT.code-workspace
 CIMAT.code-workspace
+/cycleDet.c
+/cycleDetFun.c
+/ergodic_ChaoticCycles.c
+/v1_sizeChaoticCycles.c
+/ChaoticCycles.c
+/cycleDetVar.h

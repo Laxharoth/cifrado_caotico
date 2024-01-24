@@ -22,16 +22,22 @@
 void generate_random_file_1(const char *file_path,
                             const Configuracion *config) {
     typedef unsigned long long ull;
+#ifndef MEASURE_TIME_ONLY
     FILE *file = fopen(file_path, "wb");
     if (file == NULL) {
         printf("No se pudo abrir el archivo.\n");
         return;
     }
+#endif
+
     // Obtener condiciones iniciales
     ull X[NUMBER_OF_CAHOTIC_MAPS];
     for (size_t i = 0; i < NUMBER_OF_CAHOTIC_MAPS * 2; ++i) {
         ((uint32_t *)X)[i] = rand();
     }
+
+    unsigned char *const buffer = (unsigned char *)malloc(config->file_size);
+    unsigned char *ptr_buffer = buffer;
 
     const size_t chunk_size =
         sizeof(ull) *
@@ -42,30 +48,38 @@ void generate_random_file_1(const char *file_path,
         size_t chunk_bytes =
             (chunk_size < remaining_bytes) ? chunk_size : remaining_bytes;
         renyi_array_generator(X, config->beta, config->lambda);
+        memcpy(ptr_buffer, X, chunk_bytes);
+        ptr_buffer += chunk_bytes;
 
-#ifndef MEASURE_TIME_ONLY
-        fwrite(X, sizeof(unsigned char), chunk_bytes, file);
-#endif
         remaining_bytes -= chunk_bytes;
     }
-
+#ifndef MEASURE_TIME_ONLY
+    fwrite(buffer, config->file_size, 1, file);
     fclose(file);
+#endif
+    free(buffer);
 }
 
 void generate_random_file_2(const char *file_path,
                             const Configuracion *config) {
     typedef unsigned long long ull;
+#ifndef MEASURE_TIME_ONLY
     FILE *file = fopen(file_path, "wb");
     if (file == NULL) {
         printf("No se pudo abrir el archivo.\n");
         return;
     }
+#endif
+
     // Obtener condiciones iniciales
     ull X[NUMBER_OF_CAHOTIC_MAPS];
     for (size_t i = 0; i < NUMBER_OF_CAHOTIC_MAPS * 2; ++i) {
         ((uint32_t *)X)[i] = rand();
     }
     ull Yi;
+
+    unsigned char *const buffer = (unsigned char *)malloc(config->file_size);
+    unsigned char *ptr_buffer = buffer;
 
     const size_t chunk_size = sizeof(ull);
     size_t remaining_bytes = config->file_size;
@@ -76,29 +90,37 @@ void generate_random_file_2(const char *file_path,
 
         Yi = renyi_array_combine_maps_with_mask_and_replace(X, config->beta,
                                                             config->lambda);
-#ifndef MEASURE_TIME_ONLY
-        fwrite(&Yi, sizeof(unsigned char), chunk_bytes, file);
-#endif
+        memcpy(ptr_buffer, &Yi, chunk_bytes);
+        ptr_buffer += chunk_bytes;
         remaining_bytes -= chunk_bytes;
     }
-
+#ifndef MEASURE_TIME_ONLY
+    fwrite(buffer, config->file_size, 1, file);
     fclose(file);
+#endif
+    free(buffer);
 }
 
 void generate_random_file_3(const char *file_path,
                             const Configuracion *config) {
     typedef unsigned long long ull;
+#ifndef MEASURE_TIME_ONLY
     FILE *file = fopen(file_path, "wb");
     if (file == NULL) {
         printf("No se pudo abrir el archivo.\n");
         return;
     }
+#endif
+
     // Obtener condiciones iniciales
     ull X[NUMBER_OF_CAHOTIC_MAPS];
     for (size_t i = 0; i < NUMBER_OF_CAHOTIC_MAPS * 2; ++i) {
         ((uint32_t *)X)[i] = rand();
     }
     ull Yi;
+
+    unsigned char *const buffer = (unsigned char *)malloc(config->file_size);
+    unsigned char *ptr_buffer = buffer;
 
     const size_t chunk_size = sizeof(ull);
     size_t remaining_bytes = config->file_size;
@@ -109,27 +131,35 @@ void generate_random_file_3(const char *file_path,
 
         Yi = renyi_array_random_byte_select_with_replace(X, config->beta,
                                                          config->lambda);
-#ifndef MEASURE_TIME_ONLY
-        fwrite(&Yi, sizeof(unsigned char), chunk_bytes, file);
-#endif
+        memcpy(ptr_buffer, &Yi, chunk_bytes);
+        ptr_buffer += chunk_bytes;
+
         remaining_bytes -= chunk_bytes;
     }
-
+#ifndef MEASURE_TIME_ONLY
+    fwrite(buffer, config->file_size, 1, file);
     fclose(file);
+#endif
+    free(buffer);
 }
 
 void generate_random_file_4(const char *file_path,
                             const Configuracion *config) {
     typedef unsigned long long ull;
+#ifndef MEASURE_TIME_ONLY
     FILE *file = fopen(file_path, "wb");
     if (file == NULL) {
         printf("No se pudo abrir el archivo.\n");
         return;
     }
+#endif
 
     srand(config->seed);
     ull X = rand();
     X = (X << 32) | rand();
+
+    unsigned char *const buffer = (unsigned char *)malloc(config->file_size);
+    unsigned char *ptr_buffer = buffer;
 
     const size_t chunk_size =
         sizeof(ull);  // Tamaño de cada fragmento a escribir
@@ -142,30 +172,36 @@ void generate_random_file_4(const char *file_path,
         size_t chunk_bytes =
             (chunk_size < remaining_bytes) ? chunk_size : remaining_bytes;
         X = logistic_renyi(X, config->beta, config->lambda, config->r, t);
+        memcpy(ptr_buffer, &X, chunk_bytes);
+        ptr_buffer += chunk_bytes;
 
-#ifndef MEASURE_TIME_ONLY
-        fwrite(&X, sizeof(unsigned char), chunk_bytes, file);
-#endif
         remaining_bytes -= chunk_bytes;
     }
-
+#ifndef MEASURE_TIME_ONLY
+    fwrite(buffer, config->file_size, 1, file);
     fclose(file);
+#endif
+    free(buffer);
 }
 
 void generate_random_file_5(const char *file_path,
                             const Configuracion *config) {
     typedef unsigned long long ull;
+#ifndef MEASURE_TIME_ONLY
     FILE *file = fopen(file_path, "wb");
     if (file == NULL) {
         printf("No se pudo abrir el archivo.\n");
         return;
     }
+#endif
 
     srand(config->seed);
 
     ull X = rand();
     X = (X << 32) | rand();
     ull Yi[255];
+    unsigned char *const buffer = (unsigned char *)malloc(config->file_size);
+    unsigned char *ptr_buffer = buffer;
 
     ull size = config->n;
 
@@ -181,30 +217,37 @@ void generate_random_file_5(const char *file_path,
         X = logistic_renyi_with_cycle(X, Yi, config->beta, config->lambda,
                                       config->r, t, size);
 
-#ifndef MEASURE_TIME_ONLY
-        fwrite(&Yi, sizeof(unsigned char), chunk_bytes, file);
-#endif
+        memcpy(ptr_buffer, Yi, chunk_bytes);
+        ptr_buffer += chunk_bytes;
+
         remaining_bytes -= chunk_bytes;
     }
 
+#ifndef MEASURE_TIME_ONLY
+    fwrite(buffer, config->file_size, 1, file);
     fclose(file);
+#endif
+    free(buffer);
 }
 
 void generate_random_file_6(const char *file_path,
                             const Configuracion *config) {
     typedef unsigned long long ull;
+#ifndef MEASURE_TIME_ONLY
     FILE *file = fopen(file_path, "wb");
     if (file == NULL) {
         printf("No se pudo abrir el archivo.\n");
         return;
     }
+#endif
 
     srand(config->seed);
 
     ull X = rand();
     X = (X << 32) | rand();
     ull Yi[255];
-
+    unsigned char *const buffer = (unsigned char *)malloc(config->file_size);
+    unsigned char *ptr_buffer = buffer;
     ull mask = 0b1111;
 
     ull divisor = config->r;
@@ -221,23 +264,29 @@ void generate_random_file_6(const char *file_path,
         X = logistic_renyi_with_random_cycle(
             X, Yi, config->beta, config->lambda, config->r, t, mask);
 
-#ifndef MEASURE_TIME_ONLY
-        fwrite(&Yi, sizeof(unsigned char), chunk_bytes, file);
-#endif
+        memcpy(ptr_buffer, Yi, chunk_bytes);
+        ptr_buffer += chunk_bytes;
+
         remaining_bytes -= chunk_bytes;
     }
 
+#ifndef MEASURE_TIME_ONLY
+    fwrite(buffer, config->file_size, 1, file);
     fclose(file);
+#endif
+    free(buffer);
 }
 
 void generate_random_file_7(const char *file_path,
                             const Configuracion *config) {
     typedef unsigned long long ull;
+#ifndef MEASURE_TIME_ONLY
     FILE *file = fopen(file_path, "wb");
     if (file == NULL) {
         printf("No se pudo abrir el archivo.\n");
         return;
     }
+#endif
 
     srand(config->seed);
 
@@ -250,29 +299,39 @@ void generate_random_file_7(const char *file_path,
     ull divisor = config->r;
     ull t = (MAX_ULL / divisor);
     t = sqrtull(t);
+
+    unsigned char *const buffer = (unsigned char *)malloc(config->file_size);
+    unsigned char *ptr_buffer = buffer;
+
     while (remaining_bytes > 0) {
         // Generar datos aleatorios para el fragmento actual
         size_t chunk_bytes =
             (chunk_size < remaining_bytes) ? chunk_size : remaining_bytes;
         X = logistic_generalized(X, config->h, config->k, config->n);
 
-#ifndef MEASURE_TIME_ONLY
-        fwrite(&X, sizeof(unsigned char), chunk_bytes, file);
-#endif
+        memcpy(ptr_buffer, &X, chunk_bytes);
+        ptr_buffer += chunk_bytes;
+
         remaining_bytes -= chunk_bytes;
     }
-
+#ifndef MEASURE_TIME_ONLY
+    fwrite(buffer, config->file_size, 1, file);
     fclose(file);
+#endif
+    free(buffer);
 }
 
 void generate_random_file_8(const char *file_path,
                             const Configuracion *config) {
     typedef unsigned long long ull;
+#ifndef MEASURE_TIME_ONLY
     FILE *file = fopen(file_path, "wb");
     if (file == NULL) {
         printf("No se pudo abrir el archivo.\n");
         return;
     }
+#endif
+
     const size_t numeroMapas = 4;
 
     ull Xn[numeroMapas], parametros[numeroMapas], epsilon = 65535, j = 5, H = 0;
@@ -284,6 +343,9 @@ void generate_random_file_8(const char *file_path,
         parametros[i] = (rand() % 3000) + 5;
     }
 
+    unsigned char *const buffer = (unsigned char *)malloc(config->file_size);
+    unsigned char *ptr_buffer = buffer;
+
     const size_t chunk_size =
         sizeof(ull) * numeroMapas;  // Tamaño de cada fragmento a escribir
     size_t remaining_bytes = config->file_size;
@@ -294,23 +356,28 @@ void generate_random_file_8(const char *file_path,
         SecureReal_TimeChaoticPartialEncryptionGenerator(
             Xn, parametros, j, epsilon, &H, numeroMapas);
 
-#ifndef MEASURE_TIME_ONLY
-        fwrite(Xn, sizeof(unsigned char), chunk_bytes, file);
-#endif
+        memcpy(ptr_buffer, Xn, chunk_bytes);
+        ptr_buffer += chunk_bytes;
+
         remaining_bytes -= chunk_bytes;
     }
-
+#ifndef MEASURE_TIME_ONLY
+    fwrite(Xn, config->file_size, 1, file);
     fclose(file);
+#endif
+    free(buffer);
 }
 
 void generate_random_file_9(const char *file_path,
                             const Configuracion *config) {
     typedef unsigned long long ull;
+#ifndef MEASURE_TIME_ONLY
     FILE *file = fopen(file_path, "wb");
     if (file == NULL) {
         printf("No se pudo abrir el archivo.\n");
         return;
     }
+#endif
 
     srand(config->seed);
     ull *rng_generated_buffer = (ull *)malloc(config->file_size);
@@ -333,19 +400,21 @@ void generate_random_file_9(const char *file_path,
 #ifndef MEASURE_TIME_ONLY
     fwrite(rng_generated_buffer, sizeof(unsigned char), config->file_size,
            file);
+    fclose(file);
 #endif
     free(rng_generated_buffer);
-    fclose(file);
 }
 
 void generate_random_file_10(const char *file_path,
                              const Configuracion *config) {
     typedef unsigned long long ull;
+#ifndef MEASURE_TIME_ONLY
     FILE *file = fopen(file_path, "wb");
     if (file == NULL) {
         printf("No se pudo abrir el archivo.\n");
         return;
     }
+#endif
 
     srand(config->seed);
     ull *rng_generated_buffer = (ull *)malloc(config->file_size);
@@ -369,19 +438,22 @@ void generate_random_file_10(const char *file_path,
 #ifndef MEASURE_TIME_ONLY
     fwrite(rng_generated_buffer, sizeof(unsigned char), config->file_size,
            file);
+    fclose(file);
 #endif
     free(rng_generated_buffer);
-    fclose(file);
 }
 
 void generate_random_file_11(const char *file_path,
                              const Configuracion *config) {
     typedef unsigned long long ull;
+#ifndef MEASURE_TIME_ONLY
     FILE *file = fopen(file_path, "wb");
     if (file == NULL) {
         printf("No se pudo abrir el archivo.\n");
         return;
     }
+#endif
+
     const size_t numeroMapas = 4;
     ull *rng_generated_buffer = (ull *)malloc(config->file_size);
     ull Xn[numeroMapas], parametros[numeroMapas], j = 5;
@@ -410,20 +482,23 @@ void generate_random_file_11(const char *file_path,
 #ifndef MEASURE_TIME_ONLY
     fwrite(rng_generated_buffer, sizeof(unsigned char), config->file_size,
            file);
+    fclose(file);
 #endif
 
     free(rng_generated_buffer);
-    fclose(file);
 }
 
 void generate_random_file_12(const char *file_path,
                              const Configuracion *config) {
     typedef unsigned long long ull;
+#ifndef MEASURE_TIME_ONLY
     FILE *file = fopen(file_path, "wb");
     if (file == NULL) {
         printf("No se pudo abrir el archivo.\n");
         return;
     }
+#endif
+
     const size_t numeroMapas = 4;
     ull *rng_generated_buffer = (ull *)malloc(config->file_size);
     ull Xn[numeroMapas], parametros[numeroMapas], epsilon = 65535, j = 5, H = 0;
@@ -453,19 +528,22 @@ void generate_random_file_12(const char *file_path,
 #ifndef MEASURE_TIME_ONLY
     fwrite(rng_generated_buffer, sizeof(unsigned char), config->file_size,
            file);
+    fclose(file);
 #endif
 
     free(rng_generated_buffer);
-    fclose(file);
 }
 void generate_random_file_13(const char *file_path,
                              const Configuracion *config) {
     typedef unsigned long long ull;
+#ifndef MEASURE_TIME_ONLY
     FILE *file = fopen(file_path, "wb");
     if (file == NULL) {
         printf("No se pudo abrir el archivo.\n");
         return;
     }
+#endif
+
     const size_t numeroMapas = 4;
     const ull num_mapas_mask = 0b11;
     unsigned char *const rng_generated_buffer =
@@ -551,19 +629,22 @@ void generate_random_file_13(const char *file_path,
 #ifndef MEASURE_TIME_ONLY
     fwrite(rng_generated_buffer, sizeof(unsigned char), config->file_size,
            file);
+    fclose(file);
 #endif
 
     free(rng_generated_buffer);
-    fclose(file);
 }
 void generate_random_file_14(const char *file_path,
                              const Configuracion *config) {
     typedef unsigned long long ull;
+#ifndef MEASURE_TIME_ONLY
     FILE *file = fopen(file_path, "wb");
     if (file == NULL) {
         printf("No se pudo abrir el archivo.\n");
         return;
     }
+#endif
+
     const size_t numeroMapas = 4;
     const ull num_mapas_mask = 0b11;
     const ull table_mask = (config->n << 3) - 1;
@@ -648,20 +729,23 @@ void generate_random_file_14(const char *file_path,
 #ifndef MEASURE_TIME_ONLY
     fwrite(rng_generated_buffer, sizeof(unsigned char), config->file_size,
            file);
+    fclose(file);
 #endif
 
     free(rng_generated_buffer);
-    fclose(file);
 }
 
 void generate_random_file_15(const char *file_path,
                              const Configuracion *config) {
     typedef unsigned long long ull;
+#ifndef MEASURE_TIME_ONLY
     FILE *file = fopen(file_path, "wb");
     if (file == NULL) {
         printf("No se pudo abrir el archivo.\n");
         return;
     }
+#endif
+
     const size_t numeroMapas = 4;
     const ull num_mapas_mask = 0b11;
     unsigned char *const rng_generated_buffer =
@@ -715,10 +799,10 @@ void generate_random_file_15(const char *file_path,
 #ifndef MEASURE_TIME_ONLY
     fwrite(rng_generated_buffer, sizeof(unsigned char), config->file_size,
            file);
+    fclose(file);
 #endif
 
     free(rng_generated_buffer);
-    fclose(file);
 }
 
 int main() {

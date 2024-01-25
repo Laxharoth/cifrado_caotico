@@ -634,7 +634,7 @@ int main() {
             printf("%s:\n\t", file_path);
             print_time({ generator[i](buffer, &config); });
 #ifndef MEASURE_TIME_ONLY
-            printf("\tStoring result in file.\n");
+            printf("\tGuardando archivo.\n");
             FILE *file = fopen(file_path, "wb");
             if (file == NULL) {
                 printf("No se pudo abrir el archivo.\n");

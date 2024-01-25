@@ -24,6 +24,6 @@ typedef struct {
     unsigned long long bulk_size;
 } Configuracion;
 
-Configuracion readConfigFile(const char *filename);
+void readConfigFile(const char *filename, Configuracion *const config);
 
 #endif

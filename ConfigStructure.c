@@ -1,11 +1,10 @@
 #include "ConfigStructure.h"
 
-Configuracion readConfigFile(const char *filename) {
-    Configuracion config;
+void readConfigFile(const char *filename, Configuracion *const config) {
     FILE *file = fopen(filename, "r");
     if (file == NULL) {
         printf("No se pudo abrir el archivo de configuración.\n");
-        return config;
+        return;
     }
 
     char line[MAX_LINE_LENGTH];
@@ -39,27 +38,25 @@ Configuracion readConfigFile(const char *filename) {
 
         // Guardar la clave y el valor en la estructura
         if (strcmp(key, "beta") == 0) {
-            config.beta = strtoull(value, &endptr, 10);
+            config->beta = strtoull(value, &endptr, 10);
         } else if (strcmp(key, "lambda") == 0) {
-            config.lambda = strtoull(value, &endptr, 10);
+            config->lambda = strtoull(value, &endptr, 10);
         } else if (strcmp(key, "bulk_size") == 0) {
-            config.bulk_size = strtoull(value, &endptr, 10);
+            config->bulk_size = strtoull(value, &endptr, 10);
         } else if (strcmp(key, "r") == 0) {
-            config.r = strtoull(value, &endptr, 10);
+            config->r = strtoull(value, &endptr, 10);
         } else if (strcmp(key, "h") == 0) {
-            config.h = strtoull(value, &endptr, 10);
+            config->h = strtoull(value, &endptr, 10);
         } else if (strcmp(key, "k") == 0) {
-            config.k = strtoull(value, &endptr, 10);
+            config->k = strtoull(value, &endptr, 10);
         } else if (strcmp(key, "n") == 0) {
-            config.n = strtoull(value, &endptr, 10);
+            config->n = strtoull(value, &endptr, 10);
         } else if (strcmp(key, "seed") == 0) {
-            config.seed = strtoull(value, &endptr, 10);
+            config->seed = strtoull(value, &endptr, 10);
         } else if (strcmp(key, "file_size") == 0) {
-            config.file_size = strtoull(value, &endptr, 10);
+            config->file_size = strtoull(value, &endptr, 10);
         }
     }
 
     fclose(file);
-
-    return config;
 }

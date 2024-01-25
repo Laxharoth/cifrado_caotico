@@ -19,16 +19,9 @@
         los de 4 - 7 utilizan  solo un valor como condicion inicial
 */
 
-void generate_random_file_1(const char *file_path,
+void generate_random_file_1(unsigned char *const buffer,
                             const Configuracion *config) {
     typedef unsigned long long ull;
-#ifndef MEASURE_TIME_ONLY
-    FILE *file = fopen(file_path, "wb");
-    if (file == NULL) {
-        printf("No se pudo abrir el archivo.\n");
-        return;
-    }
-#endif
 
     // Obtener condiciones iniciales
     ull X[NUMBER_OF_CAHOTIC_MAPS];
@@ -36,7 +29,6 @@ void generate_random_file_1(const char *file_path,
         ((uint32_t *)X)[i] = rand();
     }
 
-    unsigned char *const buffer = (unsigned char *)malloc(config->file_size);
     unsigned char *ptr_buffer = buffer;
 
     const size_t chunk_size =
@@ -53,23 +45,11 @@ void generate_random_file_1(const char *file_path,
 
         remaining_bytes -= chunk_bytes;
     }
-#ifndef MEASURE_TIME_ONLY
-    fwrite(buffer, config->file_size, 1, file);
-    fclose(file);
-#endif
-    free(buffer);
 }
 
-void generate_random_file_2(const char *file_path,
+void generate_random_file_2(unsigned char *const buffer,
                             const Configuracion *config) {
     typedef unsigned long long ull;
-#ifndef MEASURE_TIME_ONLY
-    FILE *file = fopen(file_path, "wb");
-    if (file == NULL) {
-        printf("No se pudo abrir el archivo.\n");
-        return;
-    }
-#endif
 
     // Obtener condiciones iniciales
     ull X[NUMBER_OF_CAHOTIC_MAPS];
@@ -77,8 +57,6 @@ void generate_random_file_2(const char *file_path,
         ((uint32_t *)X)[i] = rand();
     }
     ull Yi;
-
-    unsigned char *const buffer = (unsigned char *)malloc(config->file_size);
     unsigned char *ptr_buffer = buffer;
 
     const size_t chunk_size = sizeof(ull);
@@ -94,23 +72,11 @@ void generate_random_file_2(const char *file_path,
         ptr_buffer += chunk_bytes;
         remaining_bytes -= chunk_bytes;
     }
-#ifndef MEASURE_TIME_ONLY
-    fwrite(buffer, config->file_size, 1, file);
-    fclose(file);
-#endif
-    free(buffer);
 }
 
-void generate_random_file_3(const char *file_path,
+void generate_random_file_3(unsigned char *const buffer,
                             const Configuracion *config) {
     typedef unsigned long long ull;
-#ifndef MEASURE_TIME_ONLY
-    FILE *file = fopen(file_path, "wb");
-    if (file == NULL) {
-        printf("No se pudo abrir el archivo.\n");
-        return;
-    }
-#endif
 
     // Obtener condiciones iniciales
     ull X[NUMBER_OF_CAHOTIC_MAPS];
@@ -119,7 +85,6 @@ void generate_random_file_3(const char *file_path,
     }
     ull Yi;
 
-    unsigned char *const buffer = (unsigned char *)malloc(config->file_size);
     unsigned char *ptr_buffer = buffer;
 
     const size_t chunk_size = sizeof(ull);
@@ -136,29 +101,16 @@ void generate_random_file_3(const char *file_path,
 
         remaining_bytes -= chunk_bytes;
     }
-#ifndef MEASURE_TIME_ONLY
-    fwrite(buffer, config->file_size, 1, file);
-    fclose(file);
-#endif
-    free(buffer);
 }
 
-void generate_random_file_4(const char *file_path,
+void generate_random_file_4(unsigned char *const buffer,
                             const Configuracion *config) {
     typedef unsigned long long ull;
-#ifndef MEASURE_TIME_ONLY
-    FILE *file = fopen(file_path, "wb");
-    if (file == NULL) {
-        printf("No se pudo abrir el archivo.\n");
-        return;
-    }
-#endif
 
     srand(config->seed);
     ull X = rand();
     X = (X << 32) | rand();
 
-    unsigned char *const buffer = (unsigned char *)malloc(config->file_size);
     unsigned char *ptr_buffer = buffer;
 
     const size_t chunk_size =
@@ -177,30 +129,17 @@ void generate_random_file_4(const char *file_path,
 
         remaining_bytes -= chunk_bytes;
     }
-#ifndef MEASURE_TIME_ONLY
-    fwrite(buffer, config->file_size, 1, file);
-    fclose(file);
-#endif
-    free(buffer);
 }
 
-void generate_random_file_5(const char *file_path,
+void generate_random_file_5(unsigned char *const buffer,
                             const Configuracion *config) {
     typedef unsigned long long ull;
-#ifndef MEASURE_TIME_ONLY
-    FILE *file = fopen(file_path, "wb");
-    if (file == NULL) {
-        printf("No se pudo abrir el archivo.\n");
-        return;
-    }
-#endif
 
     srand(config->seed);
 
     ull X = rand();
     X = (X << 32) | rand();
     ull Yi[255];
-    unsigned char *const buffer = (unsigned char *)malloc(config->file_size);
     unsigned char *ptr_buffer = buffer;
 
     ull size = config->n;
@@ -222,31 +161,17 @@ void generate_random_file_5(const char *file_path,
 
         remaining_bytes -= chunk_bytes;
     }
-
-#ifndef MEASURE_TIME_ONLY
-    fwrite(buffer, config->file_size, 1, file);
-    fclose(file);
-#endif
-    free(buffer);
 }
 
-void generate_random_file_6(const char *file_path,
+void generate_random_file_6(unsigned char *const buffer,
                             const Configuracion *config) {
     typedef unsigned long long ull;
-#ifndef MEASURE_TIME_ONLY
-    FILE *file = fopen(file_path, "wb");
-    if (file == NULL) {
-        printf("No se pudo abrir el archivo.\n");
-        return;
-    }
-#endif
 
     srand(config->seed);
 
     ull X = rand();
     X = (X << 32) | rand();
     ull Yi[255];
-    unsigned char *const buffer = (unsigned char *)malloc(config->file_size);
     unsigned char *ptr_buffer = buffer;
     ull mask = 0b1111;
 
@@ -269,24 +194,11 @@ void generate_random_file_6(const char *file_path,
 
         remaining_bytes -= chunk_bytes;
     }
-
-#ifndef MEASURE_TIME_ONLY
-    fwrite(buffer, config->file_size, 1, file);
-    fclose(file);
-#endif
-    free(buffer);
 }
 
-void generate_random_file_7(const char *file_path,
+void generate_random_file_7(unsigned char *const buffer,
                             const Configuracion *config) {
     typedef unsigned long long ull;
-#ifndef MEASURE_TIME_ONLY
-    FILE *file = fopen(file_path, "wb");
-    if (file == NULL) {
-        printf("No se pudo abrir el archivo.\n");
-        return;
-    }
-#endif
 
     srand(config->seed);
 
@@ -300,7 +212,6 @@ void generate_random_file_7(const char *file_path,
     ull t = (MAX_ULL / divisor);
     t = sqrtull(t);
 
-    unsigned char *const buffer = (unsigned char *)malloc(config->file_size);
     unsigned char *ptr_buffer = buffer;
 
     while (remaining_bytes > 0) {
@@ -314,23 +225,11 @@ void generate_random_file_7(const char *file_path,
 
         remaining_bytes -= chunk_bytes;
     }
-#ifndef MEASURE_TIME_ONLY
-    fwrite(buffer, config->file_size, 1, file);
-    fclose(file);
-#endif
-    free(buffer);
 }
 
-void generate_random_file_8(const char *file_path,
+void generate_random_file_8(unsigned char *const buffer,
                             const Configuracion *config) {
     typedef unsigned long long ull;
-#ifndef MEASURE_TIME_ONLY
-    FILE *file = fopen(file_path, "wb");
-    if (file == NULL) {
-        printf("No se pudo abrir el archivo.\n");
-        return;
-    }
-#endif
 
     const size_t numeroMapas = 4;
 
@@ -343,7 +242,6 @@ void generate_random_file_8(const char *file_path,
         parametros[i] = (rand() % 3000) + 5;
     }
 
-    unsigned char *const buffer = (unsigned char *)malloc(config->file_size);
     unsigned char *ptr_buffer = buffer;
 
     const size_t chunk_size =
@@ -361,26 +259,13 @@ void generate_random_file_8(const char *file_path,
 
         remaining_bytes -= chunk_bytes;
     }
-#ifndef MEASURE_TIME_ONLY
-    fwrite(Xn, config->file_size, 1, file);
-    fclose(file);
-#endif
-    free(buffer);
 }
 
-void generate_random_file_9(const char *file_path,
+void generate_random_file_9(unsigned char *const buffer,
                             const Configuracion *config) {
     typedef unsigned long long ull;
-#ifndef MEASURE_TIME_ONLY
-    FILE *file = fopen(file_path, "wb");
-    if (file == NULL) {
-        printf("No se pudo abrir el archivo.\n");
-        return;
-    }
-#endif
 
     srand(config->seed);
-    ull *rng_generated_buffer = (ull *)malloc(config->file_size);
     ull X = rand();
     X = (X << 32) | rand();
 
@@ -392,32 +277,17 @@ void generate_random_file_9(const char *file_path,
         // Generar datos aleatorios para el fragmento actual
         size_t chunk_bytes =
             (chunk_size < remaining_bytes) ? chunk_size : remaining_bytes;
-        rng_generated_buffer[index++] = X =
-            RenyiMap(X, config->beta, config->lambda);
+        buffer[index++] = X = RenyiMap(X, config->beta, config->lambda);
 
         remaining_bytes -= chunk_bytes;
     }
-#ifndef MEASURE_TIME_ONLY
-    fwrite(rng_generated_buffer, sizeof(unsigned char), config->file_size,
-           file);
-    fclose(file);
-#endif
-    free(rng_generated_buffer);
 }
 
-void generate_random_file_10(const char *file_path,
+void generate_random_file_10(unsigned char *const buffer,
                              const Configuracion *config) {
     typedef unsigned long long ull;
-#ifndef MEASURE_TIME_ONLY
-    FILE *file = fopen(file_path, "wb");
-    if (file == NULL) {
-        printf("No se pudo abrir el archivo.\n");
-        return;
-    }
-#endif
 
     srand(config->seed);
-    ull *rng_generated_buffer = (ull *)malloc(config->file_size);
     ull X = rand();
     X = (X << 32) | rand();
 
@@ -431,31 +301,17 @@ void generate_random_file_10(const char *file_path,
         // Generar datos aleatorios para el fragmento actual
         size_t chunk_bytes =
             (chunk_size < remaining_bytes) ? chunk_size : remaining_bytes;
-        rng_generated_buffer[index++] = X = LogisticMapInt(X, config->r, t);
+        buffer[index++] = X = LogisticMapInt(X, config->r, t);
 
         remaining_bytes -= chunk_bytes;
     }
-#ifndef MEASURE_TIME_ONLY
-    fwrite(rng_generated_buffer, sizeof(unsigned char), config->file_size,
-           file);
-    fclose(file);
-#endif
-    free(rng_generated_buffer);
 }
 
-void generate_random_file_11(const char *file_path,
+void generate_random_file_11(unsigned char *const buffer,
                              const Configuracion *config) {
     typedef unsigned long long ull;
-#ifndef MEASURE_TIME_ONLY
-    FILE *file = fopen(file_path, "wb");
-    if (file == NULL) {
-        printf("No se pudo abrir el archivo.\n");
-        return;
-    }
-#endif
 
     const size_t numeroMapas = 4;
-    ull *rng_generated_buffer = (ull *)malloc(config->file_size);
     ull Xn[numeroMapas], parametros[numeroMapas], j = 5;
 
     srand(config->seed);
@@ -474,33 +330,18 @@ void generate_random_file_11(const char *file_path,
         // Generar datos aleatorios para el fragmento actual
         size_t chunk_bytes =
             (chunk_size < remaining_bytes) ? chunk_size : remaining_bytes;
-        rng_generated_buffer[index++] = random_select_coupled_chaotic_map(
+        buffer[index++] = random_select_coupled_chaotic_map(
             &position, Xn, parametros, j, 0b11);
 
         remaining_bytes -= chunk_bytes;
     }
-#ifndef MEASURE_TIME_ONLY
-    fwrite(rng_generated_buffer, sizeof(unsigned char), config->file_size,
-           file);
-    fclose(file);
-#endif
-
-    free(rng_generated_buffer);
 }
 
-void generate_random_file_12(const char *file_path,
+void generate_random_file_12(unsigned char *const buffer,
                              const Configuracion *config) {
     typedef unsigned long long ull;
-#ifndef MEASURE_TIME_ONLY
-    FILE *file = fopen(file_path, "wb");
-    if (file == NULL) {
-        printf("No se pudo abrir el archivo.\n");
-        return;
-    }
-#endif
 
     const size_t numeroMapas = 4;
-    ull *rng_generated_buffer = (ull *)malloc(config->file_size);
     ull Xn[numeroMapas], parametros[numeroMapas], epsilon = 65535, j = 5, H = 0;
 
     srand(config->seed);
@@ -519,36 +360,19 @@ void generate_random_file_12(const char *file_path,
         // Generar datos aleatorios para el fragmento actual
         size_t chunk_bytes =
             (chunk_size < remaining_bytes) ? chunk_size : remaining_bytes;
-        rng_generated_buffer[index++] =
-            random_select_coupled_chaotic_map_with_perturbation(
-                &position, Xn, parametros, j, epsilon, &H, 0b11);
+        buffer[index++] = random_select_coupled_chaotic_map_with_perturbation(
+            &position, Xn, parametros, j, epsilon, &H, 0b11);
 
         remaining_bytes -= chunk_bytes;
     }
-#ifndef MEASURE_TIME_ONLY
-    fwrite(rng_generated_buffer, sizeof(unsigned char), config->file_size,
-           file);
-    fclose(file);
-#endif
-
-    free(rng_generated_buffer);
 }
-void generate_random_file_13(const char *file_path,
+void generate_random_file_13(unsigned char *const buffer,
                              const Configuracion *config) {
     typedef unsigned long long ull;
-#ifndef MEASURE_TIME_ONLY
-    FILE *file = fopen(file_path, "wb");
-    if (file == NULL) {
-        printf("No se pudo abrir el archivo.\n");
-        return;
-    }
-#endif
 
     const size_t numeroMapas = 4;
     const ull num_mapas_mask = 0b11;
-    unsigned char *const rng_generated_buffer =
-        (unsigned char *)malloc(config->file_size);
-    unsigned char *rng_generated_buffer_write = rng_generated_buffer;
+    unsigned char *ptr_buffer = buffer;
     ull Xn[numeroMapas * config->n], parametros[numeroMapas], epsilon = 65535,
                                                               lambda = 5, H = 0;
     chaotic_lookup_table roulete[numeroMapas];
@@ -581,7 +405,8 @@ void generate_random_file_13(const char *file_path,
     ull select_map_for_lut_pos_list = 0;
     ull select_indx_for_lut_pos_list = 0;
     while (remaining_bytes > 0) {
-        // Crear lista de numeros aleatorios para seleccionar el indice del mapa
+        // Crear lista de numeros aleatorios para seleccionar el indice
+        // del mapa
         const size_t table_1 = roulete[select_map_for_lut_pos_list]
                                    .lookup_table[select_indx_for_lut_pos_list] &
                                num_mapas_mask;
@@ -620,37 +445,21 @@ void generate_random_file_13(const char *file_path,
                             table_mask,
                         roulete, parametros, lambda, num_mapas_mask, epsilon,
                         &H);
-                memcpy(rng_generated_buffer_write, &generated, chunk_bytes);
-                rng_generated_buffer_write += chunk_bytes;
+                memcpy(ptr_buffer, &generated, chunk_bytes);
+                ptr_buffer += chunk_bytes;
                 remaining_bytes -= chunk_bytes;
             }
         }
     }
-#ifndef MEASURE_TIME_ONLY
-    fwrite(rng_generated_buffer, sizeof(unsigned char), config->file_size,
-           file);
-    fclose(file);
-#endif
-
-    free(rng_generated_buffer);
 }
-void generate_random_file_14(const char *file_path,
+void generate_random_file_14(unsigned char *const buffer,
                              const Configuracion *config) {
     typedef unsigned long long ull;
-#ifndef MEASURE_TIME_ONLY
-    FILE *file = fopen(file_path, "wb");
-    if (file == NULL) {
-        printf("No se pudo abrir el archivo.\n");
-        return;
-    }
-#endif
 
     const size_t numeroMapas = 4;
     const ull num_mapas_mask = 0b11;
     const ull table_mask = (config->n << 3) - 1;
-    unsigned char *const rng_generated_buffer =
-        (unsigned char *)malloc(config->file_size);
-    unsigned char *rng_generated_buffer_write = rng_generated_buffer;
+    unsigned char *ptr_buffer = buffer;
     ull Xn[numeroMapas * (config->n + 1)], parametros[numeroMapas],
         epsilon = 65535, j = 5, H = 0;
     chaotic_lookup_table roulete[numeroMapas];
@@ -681,7 +490,8 @@ void generate_random_file_14(const char *file_path,
     ull select_map_for_lut_pos_list = 0;
     ull select_indx_for_lut_pos_list = 0;
     while (remaining_bytes > 0) {
-        // Crear lista de numeros aleatorios para seleccionar el indice del mapa
+        // Crear lista de numeros aleatorios para seleccionar el indice
+        // del mapa
         const size_t table_1 = roulete[select_map_for_lut_pos_list]
                                    .lookup_table[select_indx_for_lut_pos_list] &
                                num_mapas_mask;
@@ -720,37 +530,21 @@ void generate_random_file_14(const char *file_path,
                          current_shift_lut_pos_list) &
                             table_mask,
                         roulete, parametros, j, num_mapas_mask, epsilon, &H);
-                memcpy(rng_generated_buffer_write, &generated, chunk_bytes);
-                rng_generated_buffer_write += chunk_bytes;
+                memcpy(ptr_buffer, &generated, chunk_bytes);
+                ptr_buffer += chunk_bytes;
                 remaining_bytes -= chunk_bytes;
             }
         }
     }
-#ifndef MEASURE_TIME_ONLY
-    fwrite(rng_generated_buffer, sizeof(unsigned char), config->file_size,
-           file);
-    fclose(file);
-#endif
-
-    free(rng_generated_buffer);
 }
 
-void generate_random_file_15(const char *file_path,
+void generate_random_file_15(unsigned char *const buffer,
                              const Configuracion *config) {
     typedef unsigned long long ull;
-#ifndef MEASURE_TIME_ONLY
-    FILE *file = fopen(file_path, "wb");
-    if (file == NULL) {
-        printf("No se pudo abrir el archivo.\n");
-        return;
-    }
-#endif
 
     const size_t numeroMapas = 4;
     const ull num_mapas_mask = 0b11;
-    unsigned char *const rng_generated_buffer =
-        (unsigned char *)malloc(config->file_size);
-    unsigned char *rng_generated_buffer_write = rng_generated_buffer;
+    unsigned char *ptr_buffer = buffer;
     ull Xn[numeroMapas * config->n], parametros[numeroMapas], epsilon = 65535,
                                                               lambda = 5, H = 0;
     chaotic_lookup_table roulete[numeroMapas];
@@ -792,21 +586,15 @@ void generate_random_file_15(const char *file_path,
         const ull chunk_size = sizeof(ull) * number_of_generated_numbers;
         size_t chunk_bytes =
             (chunk_size < remaining_bytes) ? chunk_size : remaining_bytes;
-        memcpy(rng_generated_buffer_write, generated, chunk_bytes);
-        rng_generated_buffer_write += chunk_bytes;
+        memcpy(ptr_buffer, generated, chunk_bytes);
+        ptr_buffer += chunk_bytes;
         remaining_bytes -= chunk_bytes;
     }
-#ifndef MEASURE_TIME_ONLY
-    fwrite(rng_generated_buffer, sizeof(unsigned char), config->file_size,
-           file);
-    fclose(file);
-#endif
-
-    free(rng_generated_buffer);
 }
 
 int main() {
-    const Configuracion config = readConfigFile("config.txt");
+    Configuracion config;
+    readConfigFile("config.txt", &config);
     const unsigned bitarray_size = 10;
     const unsigned bitarray_size_in_bits = bitarray_size * 8;
     char bitarray[bitarray_size];
@@ -815,7 +603,10 @@ int main() {
     printf("%d\n", bitarray[0]);
     printf("%d\n", bitarray[1]);
 
-    void (*generator[])(const char *file_path, const Configuracion *config) = {
+    unsigned char *buffer = malloc(config.file_size);
+
+    void (*generator[])(unsigned char *const buffer,
+                        const Configuracion *config) = {
         generate_random_file_1,  generate_random_file_2,
         generate_random_file_3,  generate_random_file_4,
         generate_random_file_5,  generate_random_file_6,
@@ -826,23 +617,34 @@ int main() {
         generate_random_file_15,
     };
 
-    char name[20];
+    char file_path[20];
     const char prefix[] = "random_data";
     char number[10];
     const char sufix[] = ".bin";
     const unsigned num_rng = sizeof(generator) / 8;
 
-    memset(name, '\0', 20);
+    memset(file_path, '\0', 20);
 
     for (unsigned i = 0; i < num_rng; ++i) {
         sprintf(number, "%u", i + 1);
-        strcpy(name, prefix);
-        strcat(name, number);
-        strcat(name, sufix);
+        strcpy(file_path, prefix);
+        strcat(file_path, number);
+        strcat(file_path, sufix);
         if (ON(bitarray, i)) {
-            printf("%s:\n\t", name);
-            print_time({ generator[i](name, &config); });
+            printf("%s:\n\t", file_path);
+            print_time({ generator[i](buffer, &config); });
+#ifndef MEASURE_TIME_ONLY
+            printf("\tStoring result in file.\n");
+            FILE *file = fopen(file_path, "wb");
+            if (file == NULL) {
+                printf("No se pudo abrir el archivo.\n");
+                continue;
+            }
+            fwrite(buffer, sizeof(unsigned char), config.file_size, file);
+            fclose(file);
+#endif
         }
     }
+    free(buffer);
     return 0;
 }

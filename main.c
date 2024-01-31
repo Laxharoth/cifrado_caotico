@@ -376,6 +376,7 @@ void generate_random_file_13(unsigned char *const buffer,
     ull Xn[numeroMapas * config->n], parametros[numeroMapas], epsilon = 65535,
                                                               lambda = 5, H = 0;
     chaotic_lookup_table roulete[numeroMapas];
+    const ull chaotic_table_size_mask = numeroMapas * config->n - 1;
     srand(config->seed);
     const ull table_mask = config->n - 1;
     for (size_t i = 0; i < numeroMapas; i++) {
@@ -395,61 +396,20 @@ void generate_random_file_13(unsigned char *const buffer,
     const size_t chunk_size =
         sizeof(ull);  // Tamaño de cada fragmento a escribir
     size_t remaining_bytes = config->file_size;
-    ull position = 0;
-    ull index = 0;
+    static ull position = 0;
+    static ull i_lut_pos_list_index = 0;
 
-    ull lu_table_position_list[config->n];
-    const ull increase_shift_lut_pos_list = countBitsSet(table_mask);
-    ull current_shift_lut_pos_list;
-    ull i_lut_pos_list_index;
-    ull select_map_for_lut_pos_list = 0;
-    ull select_indx_for_lut_pos_list = 0;
     while (remaining_bytes > 0) {
-        // Crear lista de numeros aleatorios para seleccionar el indice
-        // del mapa
-        const size_t table_1 = roulete[select_map_for_lut_pos_list]
-                                   .lookup_table[select_indx_for_lut_pos_list] &
-                               num_mapas_mask;
-        select_map_for_lut_pos_list =
-            (select_map_for_lut_pos_list + 1) & num_mapas_mask;
-        select_indx_for_lut_pos_list =
-            (select_indx_for_lut_pos_list + 1) & table_mask;
-        const size_t table_2 = roulete[select_map_for_lut_pos_list]
-                                   .lookup_table[select_indx_for_lut_pos_list] &
-                               num_mapas_mask;
-        select_map_for_lut_pos_list =
-            (select_map_for_lut_pos_list + 1) & num_mapas_mask;
-        select_indx_for_lut_pos_list =
-            (select_indx_for_lut_pos_list + 1) & table_mask;
-        for (ull i = 0; i < config->n; ++i) {
-            lu_table_position_list[i] = roulete[table_1].lookup_table[i] ^
-                                        roulete[table_2].lookup_table[i];
-        }
-
-        for (i_lut_pos_list_index = 0;
-             i_lut_pos_list_index < config->n && remaining_bytes;
-             ++i_lut_pos_list_index) {
-            current_shift_lut_pos_list = 0;
-            for (ull current_shift_lut_pos_list = 0;
-                 current_shift_lut_pos_list < (sizeof(ull) << 3) &&
-                 remaining_bytes;
-                 current_shift_lut_pos_list += increase_shift_lut_pos_list) {
-                size_t chunk_bytes = (chunk_size < remaining_bytes)
-                                         ? chunk_size
-                                         : remaining_bytes;
-                const ull generated =
-                    random_select_coupled_chaotic_map_lookuptable(
-                        &position,
-                        (lu_table_position_list[i_lut_pos_list_index] >>
-                         current_shift_lut_pos_list) &
-                            table_mask,
-                        roulete, parametros, lambda, num_mapas_mask, epsilon,
-                        &H);
-                memcpy(ptr_buffer, &generated, chunk_bytes);
-                ptr_buffer += chunk_bytes;
-                remaining_bytes -= chunk_bytes;
-            }
-        }
+        size_t chunk_bytes =
+            (chunk_size < remaining_bytes) ? chunk_size : remaining_bytes;
+        const ull generated = random_select_coupled_chaotic_map_lookuptable(
+            &position,
+            (Xn[(i_lut_pos_list_index++) & chaotic_table_size_mask]) &
+                table_mask,
+            roulete, parametros, lambda, num_mapas_mask, epsilon, &H);
+        memcpy(ptr_buffer, &generated, chunk_bytes);
+        ptr_buffer += chunk_bytes;
+        remaining_bytes -= chunk_bytes;
     }
 }
 void generate_random_file_14(unsigned char *const buffer,
@@ -490,8 +450,8 @@ void generate_random_file_14(unsigned char *const buffer,
     ull select_map_for_lut_pos_list = 0;
     ull select_indx_for_lut_pos_list = 0;
     while (remaining_bytes > 0) {
-        // Crear lista de numeros aleatorios para seleccionar el indice
-        // del mapa
+        // Crear lista de numeros aleatorios para seleccionar el
+        // indice del mapa
         const size_t table_1 = roulete[select_map_for_lut_pos_list]
                                    .lookup_table[select_indx_for_lut_pos_list] &
                                num_mapas_mask;

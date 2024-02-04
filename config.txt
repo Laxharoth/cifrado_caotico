@@ -7,3 +7,4 @@ k=4294967295
 n=8
 file_size=1073741824
 bulk_size=8
+num_maps=8

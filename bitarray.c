@@ -1,5 +1,4 @@
-#include <stdio.h>
-#include <stdlib.h>
+#include "bitarray.h"
 
 char ON(const char *bitarray, size_t bit) {
     return bitarray[bit >> 3] & (1 << (bit & 7));

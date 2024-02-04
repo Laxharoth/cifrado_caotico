@@ -23,8 +23,6 @@ Notes: get rid of foundCycle
 
 #define TTNULL (struct HASHTABLE *)0
 
-typedef unsigned long long ull;
-
 struct HASHTABLE {
     struct HASHTABLE *pred, *suc, *timeNext;
     ull key, iterationVal;
@@ -76,13 +74,13 @@ struct HASHTABLE *CreateLinkedList(int numElem, int initVal,
 void printList(struct HASHTABLE *start, char *type) {
     if (strcmp(type, "suc") == 0) {
         while (start != TTNULL) {
-            printf("%llu,", start->key);
+            printf("%lu,", start->key);
             start = start->suc;
         }
     }
     if (strcmp(type, "timeNext") == 0)
         while (start != TTNULL) {
-            printf("%llu,", start->key);
+            printf("%lu,", start->key);
             start = start->timeNext;
         }
 }
@@ -92,14 +90,15 @@ void printHash(struct HASHTABLE **hash, ull sizeHash) {
 
     for (i = 0; i < sizeHash; i++)
         if (*(hash + i) != TTNULL) {
-            printf("\ni = %llu: ", i);
+            printf("\ni = %lu: ", i);
             printList(*(hash + i), "suc");
         }
 }
 
 void generate_random_file_13(unsigned char *const buffer,
-                             const Configuracion *config, ull *Xn,
-                             ull *parametros, chaotic_lookup_table *roulete,
+                             const Configuracion *const config, ull *const Xn,
+                             ull *const parametros,
+                             chaotic_lookup_table *roulete,
                              const ull numeroMapas) {
     const ull num_mapas_mask = numeroMapas - 1;
     unsigned char *ptr_buffer = buffer;
@@ -120,7 +119,8 @@ void generate_random_file_13(unsigned char *const buffer,
             (chunk_size < remaining_bytes) ? chunk_size : remaining_bytes;
         const ull generated = random_select_coupled_chaotic_map_lookuptable(
             &position,
-            (Xn[(i_lut_pos_list_index++) & chaotic_table_size_mask]) &
+            (Xn[i_lut_pos_list_index =
+                    (i_lut_pos_list_index + 1) & chaotic_table_size_mask]) &
                 table_mask,
             roulete, parametros, lambda, num_mapas_mask, epsilon, &H);
         memcpy(ptr_buffer, &generated, chunk_bytes);
@@ -148,8 +148,8 @@ ull generator() {
 
 int main() {
     struct HASHTABLE **modArray;  // array for mod(key,modSize)
-    ull _modSize;                 // size of modArray (prime number)
-    ull _numElem;  //  Number of elements for the detection of cycles
+    ull modSize;                  // size of modArray (prime number)
+    ull numElem;  //  Number of elements for the detection of cycles
     ull samplingInterval, copySampInt, modIndex;
     struct HASHTABLE *lastOrderNode, *startEmptyList, *timeOrderList;
     struct HASHTABLE *replace,
@@ -165,6 +165,7 @@ int main() {
     ull cycleLength, round;
     ull a, b;
     Configuracion config;
+    readConfigFile("config.txt", &config);
     ull const numeroMapas = 4;
     const ull lup_size = config.n;
     const ull table_mask = config.n - 1;
@@ -173,7 +174,6 @@ int main() {
         *parametros = malloc(sizeof(ull) * numeroMapas);
     chaotic_lookup_table *roulete =
         malloc(sizeof(chaotic_lookup_table) * numeroMapas);
-    readConfigFile("config.txt", &config);
 
     global_buffer = malloc(config.file_size + 200);
     global_table = Xn;
@@ -197,31 +197,29 @@ int main() {
 
     // Input parameters
     printf("Number of Elements (odd) for the estimation of the cycle (101):");
-    scanf("%llu", &_numElem);
-    if (_numElem == 0) {
+    scanf("%lu", &numElem);
+    if (numElem == 0) {
         printf("numElem > 0\n");
         exit(1);
     }
-    printf("numElem mod 2 = %llu\n", _numElem % 2);
-    if (!(_numElem % 2)) _numElem++;
-    const ull numElem = _numElem;
-    printf("numElem = %llu\n", numElem);
+    printf("numElem mod 2 = %lu\n", numElem % 2);
+    if (!(numElem % 2)) numElem++;
+    printf("numElem = %lu\n", numElem);
 
     printf("Number of cells in hashTable (prime number-599):");
-    scanf("%llu", &_modSize);
-    const ull modSize = _modSize;
+    scanf("%lu", &modSize);
     printf("Initial Sampling Interval Size (2): ");
-    scanf("%llu", &samplingInterval);
+    scanf("%lu", &samplingInterval);
     copySampInt = samplingInterval;
     printf("No de UpSamplings: ");
-    scanf("%llu", &upSampling);
+    scanf("%lu", &upSampling);
 
     //    scanf("%f %f",&chaoticPar,&chaoticVal); // 3.989 o 3.898 y 0.3154 o
     //    0.198 printf("chaoticPar = %f, chaoticVal =
     //    %f\n",chaoticPar,chaoticVal);
     chaoticPar = 3.688;  // 3.828427124;
     copyChaoticVal = chaoticVal = 0.1;
-    srand(0xF3);
+    srand(config.seed);
 
     cVInt = rand();
     cVInt = (cVInt << 32) | rand();
@@ -230,8 +228,8 @@ int main() {
     renyi_lambda = rand() & 63;
 
     // chaotic interval
-    a = 0xFFFFFF;
-    b = 0xFFFFFFFFFF;
+    a = 0xFFFF;
+    b = 0xFFFFFFFF;
 
     round = 1;           // first round
     while (round < 2) {  // because of the increment 0.01
@@ -297,12 +295,12 @@ int main() {
                     foundCycle = 1;
 
                     printf("\nFOUND A CYCLE(1) \n");
-                    printf("Cycle length = %llu\n",
+                    printf("Cycle length = %lu\n",
                            cycleLength = globalCounter - temp->iterationVal);
-                    printf("globalCounter= %llu\n", globalCounter);
-                    printf("numPasos = %llu, samplingInterval = %llu\n", n,
+                    printf("globalCounter= %lu\n", globalCounter);
+                    printf("numPasos = %lu, samplingInterval = %lu\n", n,
                            samplingInterval);
-                    printf("Approx. Transition Interval = %llu\n",
+                    printf("Approx. Transition Interval = %lu\n",
                            temp->iterationVal);
 
                     goto tag;
@@ -346,12 +344,12 @@ int main() {
 
                         printf("\nFOUND A CYCLE(2) \n");
                         printf(
-                            "Cycle length = %llu\n",
+                            "Cycle length = %lu\n",
                             cycleLength = globalCounter - temp->iterationVal);
-                        printf("globalCounter= %llu\n", globalCounter);
-                        printf("numPasos = 1, samplingInterval = %llu\n",
+                        printf("globalCounter= %lu\n", globalCounter);
+                        printf("numPasos = 1, samplingInterval = %lu\n",
                                samplingInterval);
-                        printf("Approx. Transition Interval = %llu\n",
+                        printf("Approx. Transition Interval = %lu\n",
                                temp->iterationVal);
                         goto tag;
                         exit(1);  // break;
@@ -386,12 +384,12 @@ int main() {
 
                         printf("\nFOUND A CYCLE(3) \n");
                         printf(
-                            "Cycle length = %llu\n",
+                            "Cycle length = %lu\n",
                             cycleLength = globalCounter - temp->iterationVal);
-                        printf("globalCounter= %llu\n", globalCounter);
-                        printf("numPasos = %llu, samplingInterval = %llu\n", n,
+                        printf("globalCounter= %lu\n", globalCounter);
+                        printf("numPasos = %lu, samplingInterval = %lu\n", n,
                                samplingInterval);
-                        printf("Approx. Transition Interval = %llu\n",
+                        printf("Approx. Transition Interval = %lu\n",
                                temp->iterationVal);
                         printf("Error Relativo = %f\n",
                                ((float)samplingInterval) / cycleLength + 1);
@@ -450,16 +448,16 @@ int main() {
                         if (temp->key == cVInt) {
                             foundCycle = 1;
 
-                            printf("\nFOUND A CYCLE(4): %llu\n", cVInt);
-                            printf("Cycle length = %llu\n",
+                            printf("\nFOUND A CYCLE(4): %lu\n", cVInt);
+                            printf("Cycle length = %lu\n",
                                    cycleLength =
                                        globalCounter - temp->iterationVal);
-                            printf("globalCounter= %llu\n", globalCounter);
+                            printf("globalCounter= %lu\n", globalCounter);
                             printf(
-                                "numPasos = %llu, samplingInterval = "
-                                "%llu\n",
+                                "numPasos = %lu, samplingInterval = "
+                                "%lu\n",
                                 n, samplingInterval);
-                            printf("Approx. Transition Interval = %llu\n",
+                            printf("Approx. Transition Interval = %lu\n",
                                    temp->iterationVal);
 
                             goto tag;
@@ -483,12 +481,12 @@ int main() {
 
                         printf("\nFOUND A CYCLE(5) \n");
                         printf(
-                            "Cycle length = %llu\n",
+                            "Cycle length = %lu\n",
                             cycleLength = globalCounter - temp->iterationVal);
-                        printf("globalCounter= %llu\n", globalCounter);
-                        printf("numPasos = %llu, samplingInterval = %llu\n", n,
+                        printf("globalCounter= %lu\n", globalCounter);
+                        printf("numPasos = %lu, samplingInterval = %lu\n", n,
                                samplingInterval);
-                        printf("Approx. Transition Interval = %llu\n",
+                        printf("Approx. Transition Interval = %lu\n",
                                temp->iterationVal);
                         printf("Error Relativo = %f\n",
                                ((float)samplingInterval) / cycleLength + 1);

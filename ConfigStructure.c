@@ -55,6 +55,8 @@ void readConfigFile(const char *filename, Configuracion *const config) {
             config->seed = strtoull(value, &endptr, 10);
         } else if (strcmp(key, "file_size") == 0) {
             config->file_size = strtoull(value, &endptr, 10);
+        } else if (strcmp(key, "num_maps") == 0) {
+            config->num_maps = strtoull(value, &endptr, 10);
         }
     }
 

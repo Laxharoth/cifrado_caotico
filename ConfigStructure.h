@@ -22,6 +22,7 @@ typedef struct {
     // numero de bytes a escribir
     unsigned long long file_size;
     unsigned long long bulk_size;
+    unsigned long long num_maps;
 } Configuracion;
 
 void readConfigFile(const char *filename, Configuracion *const config);

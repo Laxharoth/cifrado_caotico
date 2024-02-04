@@ -1,16 +1,4 @@
-#ifndef FN_C
-#define FN_C
-#include <limits.h>
-#include <math.h>
-#include <stdlib.h>
-#include <string.h>
-#define min(a, b) (((a) < (b)) ? (a) : (b))
-#ifndef NUMBER_OF_CAHOTIC_MAPS
-#define NUMBER_OF_CAHOTIC_MAPS 8
-#endif
-
-typedef unsigned long long ull;
-typedef unsigned char byte;
+#include "fn.h"
 
 ull sqrtull(ull a) {
     ull min = 0;
@@ -40,105 +28,99 @@ ull countBitsSet(ull num) {
     return count;
 }
 
-#define RenyiMap(X, β, λ) (X * β) + (X >> λ)
-#define LogisticMap(X, r) r *X * (1.0 - X)
-#define LogisticMapInt(X, r, t) r *X *(t - X)
-
 /**Rotacion izquierda circular*/
-inline ull rotl64(ull value, unsigned int count) {
+ull rotl64(ull value, unsigned int count) {
     const unsigned int mask = CHAR_BIT * sizeof(value) - 1;
     count &= mask;
     return (value << count) | (value >> (-count & mask));
 }
 /**Rotacion derecha circular*/
-inline ull rotr64(ull value, unsigned int count) {
+ull rotr64(ull value, unsigned int count) {
     const unsigned int mask = CHAR_BIT * sizeof(value) - 1;
     count &= mask;
     return (value >> count) | (value << (-count & mask));
 }
 
-void renyi_array_generator(ull X[NUMBER_OF_CAHOTIC_MAPS], const unsigned int β,
-                           const unsigned int λ) {
+void renyi_array_generator(ull *X, const unsigned int beta,
+                           const unsigned int renyi_lambda, ull num_maps) {
     ull rn1, rn2, avr;
     rn1 = rn2 = 0;
     unsigned i = 0;
     ull *Xi;
-    const int half = NUMBER_OF_CAHOTIC_MAPS / 2;
+    const int half = num_maps / 2;
 
     for (Xi = X, i = 0; i < half; i++, Xi++) {
-        *Xi = RenyiMap(*Xi, β, λ);
+        *Xi = RenyiMap(*Xi, beta, renyi_lambda);
         rn1 ^= *Xi;
     }
 
     byte *rotation = (byte *)(void *)&rn1;
     byte *bit_toggle = rotation + 4;
 
-    for (Xi = X + half, i = half; i < NUMBER_OF_CAHOTIC_MAPS;
+    for (Xi = X + half, i = half; i < num_maps;
          i++, Xi++, rotation++, bit_toggle++) {
-        *Xi = RenyiMap(*Xi, β, λ);
+        *Xi = RenyiMap(*Xi, beta, renyi_lambda);
         *Xi = rotl64(*Xi, (*rotation) & 63);
         *Xi ^= 1 << ((*bit_toggle) & 63);
         rn2 ^= *Xi;
     }
     avr = (rn1 ^ rn2);
-    for (Xi = X, i = 0; i < NUMBER_OF_CAHOTIC_MAPS; i++, Xi++) {
+    for (Xi = X, i = 0; i < num_maps; i++, Xi++) {
         *Xi = (*Xi) + (avr & 0b11111111);
     }
 }
 
 ull renyi_array_combine_maps_with_mask_and_replace(
-    ull X[NUMBER_OF_CAHOTIC_MAPS], const unsigned int β, const unsigned int λ) {
-    //
-
-    const byte MOD_8_BIT_OPERATION_CONST = 0B00000111;
+    ull *X, const unsigned int beta, const unsigned int renyi_lambda,
+    ull size_mask) {
     const ull mask = 0x00000000FFFFFFFFULL;
     static byte index_selector = 0;
 
     const byte index_1 = index_selector,
-               index_2 = (index_selector + 1) & MOD_8_BIT_OPERATION_CONST;
+               index_2 = (index_selector + 1) & size_mask;
     const ull Y = (X[index_1] & mask) | (X[index_2] & ~mask);
-    X[index_1] = RenyiMap(Y, β, λ);
+    X[index_1] = RenyiMap(Y, beta, renyi_lambda);
 
     index_selector = index_2;
     return Y;
 }
 
-ull renyi_array_random_byte_select_with_replace(ull X[NUMBER_OF_CAHOTIC_MAPS],
-                                                const byte β, const byte λ) {
+ull renyi_array_random_byte_select_with_replace(ull *X, const byte beta,
+                                                const byte renyi_lambda,
+                                                ull size_mask) {
     static byte index_selector = 0;
-    const byte MOD_64_BIT_OPERATION_CONST = 0B00111111;
     ull Y;
     byte *ptr_YasBytes = (byte *)(void *)&Y;
     byte *ptr_XasBytes = (byte *)(void *)X;
     Y = *((ull *)(ptr_XasBytes + index_selector));
-    index_selector = (*ptr_YasBytes & MOD_64_BIT_OPERATION_CONST);
+    index_selector = (*ptr_YasBytes & size_mask);
     index_selector = min(index_selector, 56);
-    *((ull *)(ptr_XasBytes + index_selector)) = RenyiMap(Y, β, λ);
+    *((ull *)(ptr_XasBytes + index_selector)) = RenyiMap(Y, beta, renyi_lambda);
     return Y;
 }
 
-inline ull logistic_renyi(const ull x, const ull β, const ull λ, const ull r,
-                          const ull t) {
-    const ull renyi = RenyiMap(x, β, λ);
+ull logistic_renyi(const ull x, const ull beta, const ull renyi_lambda,
+                   const ull r, const ull t) {
+    const ull renyi = RenyiMap(x, beta, renyi_lambda);
     return LogisticMapInt(renyi, r, t);
 }
 
-inline ull logistic_renyi_with_cycle(const ull x, ull *const _y, const ull β,
-                                     const ull λ, const ull r, const ull t,
-                                     const ull size) {
+ull logistic_renyi_with_cycle(const ull x, ull *const _y, const ull beta,
+                              const ull renyi_lambda, const ull r, const ull t,
+                              const ull size) {
     ull *y = _y;
-    *y = RenyiMap(x, β, λ);
+    *y = RenyiMap(x, beta, renyi_lambda);
     for (ull i = 1; i < size; ++i) {
         *(++y) = LogisticMapInt(*y, r, t) + 0xFFFF;
     }
     return *_y;
 }
 
-inline ull logistic_renyi_with_random_cycle(const ull x, ull *y, const ull β,
-                                            const ull λ, const ull r,
-                                            const ull t, const ull mask) {
+ull logistic_renyi_with_random_cycle(const ull x, ull *y, const ull beta,
+                                     const ull renyi_lambda, const ull r,
+                                     const ull t, const ull mask) {
     const ull size = (x & mask) | 1;
-    *y = RenyiMap(x, β, λ);
+    *y = RenyiMap(x, beta, renyi_lambda);
     for (ull i = 1; i < size; ++i) {
         *(++y) = LogisticMapInt(*y, r, t);
     }
@@ -182,14 +164,6 @@ ull random_select_coupled_chaotic_map_with_perturbation(ull *ref_position,
     *ref_position = Yn[*ref_position] & mask_numMapas;
     return ret_val;
 }
-
-struct _chaotic_lookup_table {
-    ull *lookup_table;
-    ull lu_table_mask;
-    ull lu_table_size;
-    ull last_generated;
-};
-typedef struct _chaotic_lookup_table chaotic_lookup_table;
 
 /**
  * @brief Generates un numero aleatorio usando un ruleta de lookup tables, el
@@ -343,4 +317,3 @@ void random_select_coupled_chaotic_map_lookuptable_horizontal_perturbation(
     *num2 = (replace_value & ~ull_byte_position_mask) |
             (*num2 & +ull_byte_position_mask);
 }
-#endif /* FN_C */

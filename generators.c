@@ -1,5 +1,9 @@
 #include "generators.h"
 
+#include <stdint.h>
+#include <stdio.h>
+#include <stdlib.h>
+
 void generate_random_file_1(unsigned char *const buffer,
                             const Configuracion *config) {
     // Obtener condiciones iniciales
@@ -7,7 +11,7 @@ void generate_random_file_1(unsigned char *const buffer,
     for (size_t i = 0; i < config->num_maps * 2; ++i) {
         ((uint *)X)[i] = rand();
     }
-
+    printf("JAJA Que loquillo me estan llamando");
     unsigned char *ptr_buffer = buffer;
 
     const size_t chunk_size =
@@ -325,27 +329,31 @@ void generate_random_file_12(unsigned char *const buffer,
 }
 void generate_random_file_13(unsigned char *const buffer,
                              const Configuracion *config) {
-    const size_t numeroMapas = 4;
-    const ull num_mapas_mask = 0b11;
+    const size_t numeroMapas = config->num_maps;
+    const ull num_mapas_mask = numeroMapas - 1;
+    const ull table_size = config->n;
+    const ull table_mask = table_size - 1;
+    const ull total_table_size = numeroMapas * table_size;
     unsigned char *ptr_buffer = buffer;
-    ull Xn[numeroMapas * config->n], parametros[numeroMapas], epsilon = 65535,
-                                                              lambda = 5, H = 0;
+    ull *Xn = malloc(sizeof(ull) * total_table_size),
+        *parametros = malloc(sizeof(ull) * numeroMapas), epsilon = 65535,
+        lambda = 5, H = 0;
     chaotic_lookup_table roulete[numeroMapas];
     const ull chaotic_table_size_mask = numeroMapas * config->n - 1;
     srand(config->seed);
-    const ull table_mask = config->n - 1;
+
     for (size_t i = 0; i < numeroMapas; i++) {
         Xn[i * config->n] = rand();
-        Xn[i * config->n] = (Xn[i] << 32) | rand();
+        Xn[i * config->n] = (Xn[i * config->n] << 32) | rand();
         parametros[i] = (rand() % 3000) + 5;
         for (size_t j = 1; j < config->n; ++j) {
             Xn[i * config->n + j] =
                 RenyiMap(Xn[i * config->n + j - 1], parametros[i], lambda);
         }
-        roulete[i].lookup_table = Xn;
+        roulete[i].lookup_table = Xn + i * config->n;
         roulete[i].lu_table_size = config->n;
         roulete[i].lu_table_mask = table_mask;
-        roulete[i].last_generated = Xn[config->n - 1];
+        roulete[i].last_generated = Xn[i * config->n + config->n - 1];
     }
 
     const size_t chunk_size =
@@ -366,6 +374,8 @@ void generate_random_file_13(unsigned char *const buffer,
         ptr_buffer += chunk_bytes;
         remaining_bytes -= chunk_bytes;
     }
+    free(Xn);
+    free(parametros);
 }
 void generate_random_file_14(unsigned char *const buffer,
                              const Configuracion *config) {
@@ -373,8 +383,11 @@ void generate_random_file_14(unsigned char *const buffer,
     const ull num_mapas_mask = 0b11;
     const ull table_mask = (config->n << 3) - 1;
     unsigned char *ptr_buffer = buffer;
-    ull Xn[numeroMapas * (config->n + 1)], parametros[numeroMapas],
-        epsilon = 65535, j = 5, H = 0;
+    const ull table_size = config->n;
+    const ull total_table_size = numeroMapas * table_size;
+    ull *Xn = malloc(sizeof(ull) * total_table_size),
+        *parametros = malloc(sizeof(ull) * numeroMapas), epsilon = 65535,
+        lambda = 5, H = 0;
     chaotic_lookup_table roulete[numeroMapas];
     srand(config->seed);
     for (size_t i = 0; i < numeroMapas; i++) {
@@ -442,22 +455,34 @@ void generate_random_file_14(unsigned char *const buffer,
                         (lu_table_position_list[i_lut_pos_list_index] >>
                          current_shift_lut_pos_list) &
                             table_mask,
-                        roulete, parametros, j, num_mapas_mask, epsilon, &H);
+                        roulete, parametros, lambda, num_mapas_mask, epsilon,
+                        &H);
                 memcpy(ptr_buffer, &generated, chunk_bytes);
                 ptr_buffer += chunk_bytes;
                 remaining_bytes -= chunk_bytes;
             }
         }
     }
+    free(Xn);
+    free(parametros);
 }
+
+struct roulete_config {
+    uint64_t **roulete;
+    uint64_t *last_generated;
+    uint64_t num_mapas_mask;
+};
 
 void generate_random_file_15(unsigned char *const buffer,
                              const Configuracion *config) {
     const size_t numeroMapas = 4;
     const ull num_mapas_mask = 0b11;
     unsigned char *ptr_buffer = buffer;
-    ull Xn[numeroMapas * config->n], parametros[numeroMapas], epsilon = 65535,
-                                                              lambda = 5, H = 0;
+    const ull table_size = config->n;
+    const ull total_table_size = numeroMapas * table_size;
+    ull *Xn = malloc(sizeof(ull) * total_table_size),
+        *parametros = malloc(sizeof(ull) * numeroMapas), epsilon = 65535,
+        lambda = 5, H = 0;
     chaotic_lookup_table roulete[numeroMapas];
     srand(config->seed);
     const ull table_mask = config->n - 1;
@@ -469,7 +494,7 @@ void generate_random_file_15(unsigned char *const buffer,
             Xn[i * config->n + j] =
                 RenyiMap(Xn[i * config->n + j - 1], parametros[i], lambda);
         }
-        roulete[i].lookup_table = Xn;
+        roulete[i].lookup_table = Xn + i * (config->n + 1);
         roulete[i].lu_table_size = config->n;
         roulete[i].lu_table_mask = table_mask;
         roulete[i].last_generated = Xn[config->n - 1];
@@ -501,4 +526,6 @@ void generate_random_file_15(unsigned char *const buffer,
         ptr_buffer += chunk_bytes;
         remaining_bytes -= chunk_bytes;
     }
+    free(Xn);
+    free(parametros);
 }

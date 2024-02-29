@@ -157,4 +157,7 @@ void random_select_coupled_chaotic_map_lookuptable_horizontal_perturbation(
     ull *const parametros, ull j, ull epsilon, ull *const ref_H,
     ull *const placeholder, ull placeholder_size,
     ull *const number_of_generated_numbers, ull perturbation_size_auxiliar);
+
+void cipher_data(unsigned char *plain_text, const unsigned char *cipher_value,
+                 const ull cipher_size);
 #endif /* FN_H */

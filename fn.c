@@ -317,3 +317,13 @@ void random_select_coupled_chaotic_map_lookuptable_horizontal_perturbation(
     *num2 = (replace_value & ~ull_byte_position_mask) |
             (*num2 & +ull_byte_position_mask);
 }
+
+void cipher_data(unsigned char *plain_text, const unsigned char *cipher_value,
+                 const ull cipher_size) {
+    unsigned char *ptr_plain_text = plain_text;
+    const unsigned char *ptr_cipher_value = cipher_value;
+    for (ull _ = 0; _ < cipher_size;
+         ++_, ++ptr_plain_text, ++ptr_cipher_value) {
+        *ptr_plain_text ^= *ptr_cipher_value;
+    }
+}

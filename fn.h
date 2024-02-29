@@ -5,7 +5,8 @@
 #include <stdlib.h>
 #include <string.h>
 #include <sys/types.h>
-#define min(a, b) (((a) < (b)) ? (a) : (b))
+
+#include_next "minmax.h"
 #ifndef NUMBER_OF_CAHOTIC_MAPS
 #define NUMBER_OF_CAHOTIC_MAPS 8
 #endif

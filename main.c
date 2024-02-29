@@ -3,13 +3,13 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#define SAMPLE_SIZE 10
 
 #include "ConfigStructure.h"
 #include "bitarray.h"
+#include "fn.h"
 #include "generators.h"
 #include "time_measure.h"
-
-#define SAMPLE_SIZE 1
 
 /*
     Las funciones generate_random_file
@@ -30,6 +30,8 @@ int main() {
     printf("%d\n", bitarray[1]);
 
     unsigned char *buffer = malloc(config.file_size);
+    unsigned char *dummy = malloc(config.file_size);
+    ;
 
     void (*generator[])(unsigned char *const buffer,
                         const Configuracion *config) = {
@@ -58,7 +60,11 @@ int main() {
         strcat(file_path, sufix);
         if (ON(bitarray, i)) {
             printf("%s:\n\t", file_path);
-            print_time({ generator[i](buffer, &config); });
+            print_time({
+                generator[i](buffer, &config);
+                cipher_data(dummy, buffer, config.file_size);
+            });
+
 #ifndef MEASURE_TIME_ONLY
             printf("\tGuardando archivo.\n");
             FILE *file = fopen(file_path, "wb");
@@ -72,5 +78,6 @@ int main() {
         }
     }
     free(buffer);
+    free(dummy);
     return 0;
 }

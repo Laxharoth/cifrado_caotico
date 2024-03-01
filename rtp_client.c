@@ -34,7 +34,7 @@ int create_udp_socket(uint16_t port, struct sockaddr_in *sockaddr) {
 
 int main() {
     // inicializar constantes
-    const size_t payload_size = 1023;
+    const size_t payload_size = 1024;
     const size_t header_size = sizeof(struct rtp_header);
     const uint8_t hash[] = {
         114, 241, 40,  167, 67,  66,  146, 166, 113, 109, 92,  94, 125,
@@ -63,16 +63,19 @@ int main() {
     struct sockaddr_in servaddr;
     int sockfd = create_udp_socket(12345, &servaddr);
 
-    struct rtp_header header = {0};
-    header.version = 0b10;
-    header.padding = 1;
-    header.extension = 0;
-    header.seq_number = 0;
-    header.timestamp = time(0);
+    // set the initial address for payload and header
+    uint8_t send_buffer[header_size + payload_size + 1];
+    struct rtp_header *header = (struct rtp_header *)send_buffer;
+    uint8_t *payload = send_buffer + sizeof(struct rtp_header);
+
+    // inicializa la cabecera de rtp
+    header->version = 0b10;
+    header->padding = 1;
+    header->extension = 0;
+    header->seq_number = 0;
+    header->timestamp = time(0);
 
     uint8_t hashindex = 0;
-    uint8_t payload[payload_size + 1];
-    uint8_t send_buffer[payload_size + header_size + 1];
     size_t index;
     uint8_t feedback;
 
@@ -83,13 +86,12 @@ int main() {
             goto cleanup;
         }
         // add hash to check integrity
-        payload[payload_size] = hash[header.seq_number & index_mask];
+        payload[payload_size] = hash[header->seq_number & index_mask];
 
         cipher(payload, random_buffer, sending_size, config.file_size,
-               header.seq_number, &feedback);
+               header->seq_number, &feedback);
 
-        copy_rtp_packet(send_buffer, payload, sending_size, &header);
-
+        header->timestamp = time(0);
         if (sendto(sockfd, (const char *)send_buffer,
                    sending_size + header_size, 0,
                    (const struct sockaddr *)&servaddr,
@@ -97,7 +99,7 @@ int main() {
             perror("failed to send");
         }
         remaining -= sending_size - 1;
-        header.seq_number++;
+        header->seq_number++;
     }
 
 cleanup:

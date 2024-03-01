@@ -46,7 +46,7 @@ int main() {
     const size_t payload_size = 1024;
     const size_t header_size = sizeof(struct rtp_header);
 
-    uint8_t buffer[payload_size + header_size];
+    uint8_t buffer[payload_size + header_size + 1];
     struct rtp_header *const header = (struct rtp_header *)buffer;
     uint8_t *const payload = buffer + header_size;
 
@@ -96,9 +96,6 @@ int main() {
                    hash[header->seq_number & index_mask], got_hash);
         }
 
-        refill_cipher_stream(
-            random_buffer, (header->seq_number - last_decipher) * payload_size,
-            config.file_size, header->seq_number, random_generator);
         printf("%06d bytes read,  sequence number: %06d\n", n,
                header->seq_number);
     }

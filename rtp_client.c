@@ -65,7 +65,7 @@ int main() {
 
     struct rtp_header header = {0};
     header.version = 0b10;
-    header.padding = 0;
+    header.padding = 1;
     header.extension = 0;
     header.seq_number = 0;
     header.timestamp = time(0);
@@ -78,12 +78,12 @@ int main() {
 
     while (remaining) {
         const size_t sending_size = min(payload_size + 1, remaining + 1);
-        if (fgets(payload, sending_size, stream) == NULL) {
+        if (fgets(payload, payload_size, stream) == NULL) {
             perror("Error while reading");
             goto cleanup;
         }
         // add hash to check integrity
-        payload[sending_size - 1] = hash[header.seq_number & index_mask];
+        payload[payload_size] = hash[header.seq_number & index_mask];
 
         cipher(payload, random_buffer, sending_size, config.file_size,
                header.seq_number, &feedback);

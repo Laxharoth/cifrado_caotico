@@ -1,5 +1,10 @@
 #ifndef GENERATORS_H
 #define GENERATORS_H
+
+#include <stdint.h>
+#include <stdio.h>
+#include <stdlib.h>
+
 #include "ConfigStructure.h"
 #include "fn.h"
 

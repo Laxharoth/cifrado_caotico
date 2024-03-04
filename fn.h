@@ -2,9 +2,9 @@
 #define FN_H
 #include <limits.h>
 #include <math.h>
+#include <stdint.h>
 #include <stdlib.h>
 #include <string.h>
-#include <sys/types.h>
 
 #include "minmax.h"
 #ifndef NUMBER_OF_CAHOTIC_MAPS
@@ -16,8 +16,8 @@
 #define LogisticMapInt(X, r, t) r *X *(t - X)
 #define MAX_ULL (~(0ull))
 
-typedef u_int64_t ull;
-typedef u_int32_t uint;
+typedef uint64_t ull;
+typedef uint32_t uint;
 typedef unsigned char byte;
 
 ull sqrtull(ull a);

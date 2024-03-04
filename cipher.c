@@ -10,7 +10,6 @@ void cipher(u_int8_t *plain_text, u_int8_t *const cipher_stream,
         *feedback ^= cipher_stream[cipher_stream_current];
         *plain_text ^= *feedback;
     }
-    *feedback ^= *cipher_stream;
 }
 
 void refill_cipher_stream(u_int8_t *const cipher_stream, u_int64_t amount,

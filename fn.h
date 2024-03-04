@@ -6,7 +6,7 @@
 #include <string.h>
 #include <sys/types.h>
 
-#include_next "minmax.h"
+#include "minmax.h"
 #ifndef NUMBER_OF_CAHOTIC_MAPS
 #define NUMBER_OF_CAHOTIC_MAPS 8
 #endif

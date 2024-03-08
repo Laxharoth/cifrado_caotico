@@ -40,6 +40,11 @@ void initilizale_roulete(const Configuracion *const config,
     }
 }
 
+void delete_roulete(struct rouleteConfig *config) {
+    free(config->raw);
+    free(config->roulete);
+}
+
 uint64_t random_select_coupled_chaotic_map_lookuptable(
     struct rouleteConfig *roulete_config) {
     uint64_t *ref_roulete_position = &roulete_config->roulette_selector;
@@ -59,12 +64,12 @@ uint64_t random_select_coupled_chaotic_map_lookuptable(
     return ret_val;
 }
 
-void roulete_generator(unsigned char *const buffer, const Configuracion *config,
+void roulete_generator(uint64_t *const buffer, const Configuracion *config,
                        struct rouleteConfig *rouleteConfig) {
     const size_t chunk_size =
         sizeof(uint64_t);  // Tamaño de cada fragmento a escribir
     size_t remaining_bytes = config->file_size;
-    unsigned char *ptr_buffer = buffer;
+    uint8_t *ptr_buffer = (uint8_t *)buffer;
 
     while (remaining_bytes > 0) {
         size_t chunk_bytes =

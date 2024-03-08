@@ -31,7 +31,7 @@ void initilizale_roulete(const Configuracion *const config,
                          struct rouleteConfig *roulete_config);
 uint64_t random_select_coupled_chaotic_map_lookuptable(
     struct rouleteConfig *roulete_config);
-void roulete_generator(unsigned char *const buffer, const Configuracion *config,
+void roulete_generator(uint64_t *const buffer, const Configuracion *config,
                        struct rouleteConfig *rouleteConfig);
 
 #endif  //__ROULETE_H__

@@ -66,7 +66,7 @@ int main() {
         const size_t sending_size = min(payload_size, remaining);
         if (fgets((char *)payload, payload_size, stream) == NULL) {
             perror("Error while reading");
-            goto cleanup;
+            exit(EXIT_FAILURE);
         }
         // padding
         memset(payload + sending_size, 0, payload_size - sending_size);
@@ -90,7 +90,6 @@ int main() {
         header->seq_number++;
     }
 
-cleanup:
     free(random_buffer);
     free(send_buffer);
     fclose(stream);

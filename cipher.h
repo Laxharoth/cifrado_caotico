@@ -5,7 +5,6 @@
 
 #include "ConfigStructure.h"
 #include "chaotic_map.h"
-#include "fn.h"
 
 typedef uint64_t (*generator)();
 

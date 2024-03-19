@@ -5,6 +5,8 @@
 #include <stdlib.h>
 
 #include "ConfigStructure.h"
+#include "chaotic_map.h"
+
 const static uint64_t epsilon = 65535;
 struct chaotic_lookup_table {
     uint64_t *lookup_table;
@@ -24,8 +26,6 @@ struct rouleteConfig {
     uint64_t lu_table_position;
     uint64_t H;
 };
-
-#define RenyiMap(X, beta, renyi_lambda) (X * beta) + (X >> renyi_lambda)
 
 void initilizale_roulete(const Configuracion *const config,
                          struct rouleteConfig *roulete_config);

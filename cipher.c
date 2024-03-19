@@ -6,13 +6,13 @@ void cipher(uint64_t *plain_text, uint64_t *const cipher_stream,
             uint64_t aux_renyi_r, uint64_t aux_renyi_j) {
     uint64_t sum = 0;
     uint64_t iter;
-    uint64_t cipher_text_ant = 0;
+    uint64_t cipher_text_ant = *cipher_stream;
     uint8_t *sum_bytes = (uint8_t *)&sum;
     for (iter = 0; iter < length; iter += 2, ++plain_text) {
         const uint64_t cipher_stream_current_index =
-            (cipher_stream_index + iter) % cipher_stream_size;
-        const uint64_t cipher_stream_current_index_next =
             (cipher_stream_index + iter + 1) % cipher_stream_size;
+        const uint64_t cipher_stream_current_index_next =
+            (cipher_stream_index + iter + 2) % cipher_stream_size;
         const uint64_t num_1 = cipher_stream[cipher_stream_current_index];
         const uint64_t num_2 = cipher_stream[cipher_stream_current_index_next];
         const uint64_t renyi_cipher_val =
@@ -33,13 +33,13 @@ void decipher(uint64_t *cipher_text, uint64_t *const cipher_stream,
               uint64_t aux_renyi_r, uint64_t aux_renyi_j) {
     uint64_t sum = 0;
     uint64_t iter;
-    uint64_t cipher_text_ant = 0;
+    uint64_t cipher_text_ant = *cipher_stream;
     uint8_t *sum_bytes = (uint8_t *)&sum;
     for (iter = 0; iter < length; iter += 2, ++cipher_text) {
         const uint64_t cipher_stream_current_index =
-            (cipher_stream_index + iter) % cipher_stream_size;
-        const uint64_t cipher_stream_current_index_next =
             (cipher_stream_index + iter + 1) % cipher_stream_size;
+        const uint64_t cipher_stream_current_index_next =
+            (cipher_stream_index + iter + 2) % cipher_stream_size;
         const uint64_t num_1 = cipher_stream[cipher_stream_current_index];
         const uint64_t num_2 = cipher_stream[cipher_stream_current_index_next];
         const uint64_t renyi_cipher_val =

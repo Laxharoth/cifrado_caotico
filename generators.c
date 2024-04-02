@@ -1,9 +1,5 @@
 #include "generators.h"
 
-#include <stdint.h>
-#include <stdio.h>
-#include <stdlib.h>
-
 void generate_random_file_1(unsigned char *const buffer,
                             const Configuracion *config) {
     // Obtener condiciones iniciales
@@ -379,8 +375,8 @@ void generate_random_file_13(unsigned char *const buffer,
 }
 void generate_random_file_14(unsigned char *const buffer,
                              const Configuracion *config) {
-    const size_t numeroMapas = 4;
-    const ull num_mapas_mask = 0b11;
+    const size_t numeroMapas = config->num_maps;
+    const ull num_mapas_mask = numeroMapas - 1;
     const ull table_mask = (config->n << 3) - 1;
     unsigned char *ptr_buffer = buffer;
     const ull table_size = config->n;
@@ -475,14 +471,14 @@ struct roulete_config {
 
 void generate_random_file_15(unsigned char *const buffer,
                              const Configuracion *config) {
-    const size_t numeroMapas = 4;
-    const ull num_mapas_mask = 0b11;
+    const size_t numeroMapas = config->num_maps;
+    const ull num_mapas_mask = numeroMapas - 1;
     unsigned char *ptr_buffer = buffer;
     const ull table_size = config->n;
     const ull total_table_size = numeroMapas * table_size;
-    ull *Xn = malloc(sizeof(ull) * total_table_size),
-        *parametros = malloc(sizeof(ull) * numeroMapas), epsilon = 65535,
-        lambda = 5, H = 0;
+    ull epsilon = 65535, lambda = 5, H = 0;
+    ull *Xn = malloc(sizeof(ull) * total_table_size);
+    ull *parametros = malloc(sizeof(ull) * numeroMapas);
     chaotic_lookup_table roulete[numeroMapas];
     srand(config->seed);
     const ull table_mask = config->n - 1;
@@ -501,31 +497,29 @@ void generate_random_file_15(unsigned char *const buffer,
     }
 
     size_t remaining_bytes = config->file_size;
-    ull position = 0;
+    ull roulete_position = 0;
+    ull table_position = 0;
     ull index = 0;
 
-    const ull increase_shift_lut_pos_list = countBitsSet(table_mask);
-    ull current_shift_lut_pos_list;
-    ull i_lut_pos_list_index;
     ull select_map_for_lut_pos_list = 0;
     ull select_indx_for_lut_pos_list = 0;
-    ull generated[410];
+
     const ull mask_lut_pos_indxsize =
-        (table_mask << countBitsSet(num_mapas_mask)) | num_mapas_mask;
-    ull number_of_generated_numbers = 0;
+        (config->n * numeroMapas * sizeof(ull)) - 1;
+    const ull chunk_size = sizeof(ull);
+    unsigned u = 0;
     while (remaining_bytes > 0) {
-        random_select_coupled_chaotic_map_lookuptable_horizontal_perturbation(
-            &position, roulete, num_mapas_mask, table_mask, Xn,
-            mask_lut_pos_indxsize, parametros, lambda, epsilon, &H, generated,
-            405, &number_of_generated_numbers,
-            Xn[number_of_generated_numbers & mask_lut_pos_indxsize] & 0xFF);
-        const ull chunk_size = sizeof(ull) * number_of_generated_numbers;
+        ull generated =
+            random_select_coupled_chaotic_map_lookuptable_horizontal_perturbation(
+                roulete, &roulete_position, num_mapas_mask, table_mask,
+                &table_position, Xn, mask_lut_pos_indxsize, parametros, lambda,
+                epsilon, &H);
         size_t chunk_bytes =
             (chunk_size < remaining_bytes) ? chunk_size : remaining_bytes;
-        memcpy(ptr_buffer, generated, chunk_bytes);
+        memcpy(ptr_buffer, &generated, chunk_bytes);
         ptr_buffer += chunk_bytes;
         remaining_bytes -= chunk_bytes;
     }
+
     free(Xn);
-    free(parametros);
 }

@@ -150,13 +150,11 @@ ull random_select_coupled_chaotic_map_lookuptable_byte(
  * por la función
  * @param perturbation_size_auxiliar
  */
-void random_select_coupled_chaotic_map_lookuptable_horizontal_perturbation(
-    ull *const ref_roulete_position, chaotic_lookup_table *const roulete,
-    ull mask_numMapas, ull mask_tablesize,
-    ull *const lu_table_position_index_list, ull mask_lut_pos_indxsize,
-    ull *const parametros, ull j, ull epsilon, ull *const ref_H,
-    ull *const placeholder, ull placeholder_size,
-    ull *const number_of_generated_numbers, ull perturbation_size_auxiliar);
+ull random_select_coupled_chaotic_map_lookuptable_horizontal_perturbation(
+    chaotic_lookup_table *const roulete, ull *const ref_roulete_position,
+    ull mask_numMapas, ull mask_tablesize, ull *const table_position,
+    byte *const lu_table_position_index_list, ull mask_lut_pos_indxsize,
+    ull *const parametros, ull j, ull epsilon, ull *const ref_H);
 
 void cipher_data(unsigned char *plain_text, const unsigned char *cipher_value,
                  const ull cipher_size);

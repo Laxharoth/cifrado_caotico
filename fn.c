@@ -262,60 +262,47 @@ ull random_select_coupled_chaotic_map_lookuptable_byte(
  * por la función
  * @param perturbation_size_auxiliar
  */
-void random_select_coupled_chaotic_map_lookuptable_horizontal_perturbation(
-    ull *const ref_roulete_position, chaotic_lookup_table *const roulete,
-    ull mask_numMapas, ull mask_tablesize,
-    ull *const lu_table_position_index_list, ull mask_lut_pos_indxsize,
-    ull *const parametros, ull j, ull epsilon, ull *const ref_H,
-    ull *const placeholder, ull placeholder_size,
-    ull *const number_of_generated_numbers, ull perturbation_size_auxiliar) {
-    const ull ull_byte_size_mask = sizeof(ull) - 1;
-    *number_of_generated_numbers =
-        min(placeholder_size, 150 + perturbation_size_auxiliar);
-    ull *ptr_placeholder = placeholder;
-    ull lu_table_position_index = 0, lu_table_position;
-    ull ull_byte_position_mask = 0;
-    ull iter;
+ull random_select_coupled_chaotic_map_lookuptable_horizontal_perturbation(
+    chaotic_lookup_table *const roulete, ull *const ref_roulete_position,
+    ull mask_numMapas, ull mask_tablesize, ull *const table_position,
+    byte *const lu_table_position_index_list, ull mask_lut_pos_indxsize,
+    ull *const parametros, ull j, ull epsilon, ull *const ref_H) {
+    // Obtiene mascara para el offset de combinación de numeros
+    const uint8_t u64_bit_size = (sizeof(uint64_t) << 3);
+    const uint8_t mask_offset = (sizeof(uint64_t) << 3) - 1;
+    // Obtiene lookup tables que se van a utilizar
+    chaotic_lookup_table *Yn = &roulete[*ref_roulete_position];
+    chaotic_lookup_table *Yn_plus1 =
+        &roulete[((*ref_roulete_position) + 1) & mask_numMapas];
+    // Obtiene la posición del numero aleatorio
+    const uint64_t lu_table_position =
+        lu_table_position_index_list[(*table_position)] & mask_tablesize;
+    (*table_position) = ((*table_position) + 1) & mask_lut_pos_indxsize;
+    // Obtiene el offset para combinar los numeros aleatorios
+    const uint64_t offset =
+        lu_table_position_index_list[(*table_position)] & mask_offset;
+    (*table_position) = ((*table_position) + 1) & mask_lut_pos_indxsize;
+    // Crea mascara para reemplazar el los bits usados
+    const uint64_t mask_replace = (~(0ull)) >> offset;
 
-    for (iter = 0; iter < *number_of_generated_numbers - 1;
-         ++iter, ++ptr_placeholder) {
-        lu_table_position =
-            lu_table_position_index_list[iter & mask_lut_pos_indxsize] &
-            mask_tablesize;
-        lu_table_position_index =
-            lu_table_position_index + 1 & mask_lut_pos_indxsize;
-        *ptr_placeholder = random_select_coupled_chaotic_map_lookuptable(
-            ref_roulete_position, lu_table_position, roulete, parametros, j,
-            mask_numMapas, epsilon, ref_H);
-    }
-    *ref_roulete_position =
-        lu_table_position_index_list[iter++ & mask_lut_pos_indxsize] &
-        mask_numMapas;
-    lu_table_position_index =
-        lu_table_position_index + 1 & mask_lut_pos_indxsize;
-    lu_table_position =
-        lu_table_position_index_list[iter++ & mask_lut_pos_indxsize] &
-        mask_tablesize;
-    lu_table_position_index =
-        lu_table_position_index + 1 & mask_lut_pos_indxsize;
-    ull_byte_position_mask =
-        (~(0ull)) >>
-        (lu_table_position_index_list[iter++ & mask_lut_pos_indxsize] &
-         ull_byte_size_mask);
+    // Coloca los numeros que se van a usar en punteros
+    uint64_t *const num_1 = &(Yn->lookup_table[lu_table_position]);
+    uint64_t *const num_2 = &(Yn_plus1->lookup_table[lu_table_position]);
 
-    ull replace_value = random_select_coupled_chaotic_map_lookuptable(
-        ref_roulete_position, lu_table_position, roulete, parametros, j,
-        mask_numMapas, epsilon, ref_H);
-
-    ull *num1 = &roulete[*ref_roulete_position].lookup_table[lu_table_position];
-    ull *num2 = &roulete[((*ref_roulete_position) + 1) & mask_numMapas]
-                     .lookup_table[lu_table_position];
-    *ptr_placeholder =
-        (*num1 & ull_byte_position_mask) | (*num2 & ~ull_byte_position_mask);
-    *num1 = (replace_value & ull_byte_position_mask) |
-            (*num1 & +~ull_byte_position_mask);
-    *num2 = (replace_value & ~ull_byte_position_mask) |
-            (*num2 & +ull_byte_position_mask);
+    // Genera el proximo numero aleatorio
+    Yn->last_generated =
+        RenyiMap(Yn->last_generated, parametros[*ref_roulete_position], j) +
+        (epsilon & (*ref_H));
+    // Actualiza la perturbacion
+    *ref_H ^= Yn->last_generated;
+    *ref_roulete_position = Yn->last_generated & mask_numMapas;
+    const uint64_t ret_val =
+        ((*num_1) & mask_replace) | ((*num_2) & (~mask_replace));
+    *num_1 =
+        ((*num_1) & (~mask_replace)) | (Yn->last_generated & (mask_replace));
+    *num_2 =
+        ((*num_2) & (mask_replace)) | (Yn->last_generated & (~mask_replace));
+    return ret_val;
 }
 
 void cipher_data(unsigned char *plain_text, const unsigned char *cipher_value,

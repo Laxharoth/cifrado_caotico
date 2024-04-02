@@ -89,21 +89,23 @@ uint64_t random_select_coupled_chaotic_map_lookuptable_bitoffset(
     // Crea mascara para reemplazar el los bits usados
     const uint64_t mask_replace = (~(0ull)) >> offset;
 
+    // Coloca los numeros que se van a usar en punteros
+    uint64_t *const num_1 = &(Yn->lookup_table[lu_table_position]);
+    uint64_t *const num_2 = &(Yn_plus1->lookup_table[lu_table_position]);
+
     // Genera el proximo numero aleatorio
     Yn->last_generated =
         RenyiMap(Yn->last_generated, Yn->parameter_r, Yn->parameter_l) +
         (roulete_config->epsilon & (roulete_config->H));
+    // Actualiza la perturbacion
     roulete_config->H ^= Yn->last_generated;
     *ref_roulete_position = Yn->last_generated & roulete_config->num_mapas_mask;
     const uint64_t ret_val =
-        (Yn->lookup_table[lu_table_position] << offset) |
-        (Yn_plus1->lookup_table[lu_table_position] << (u64_bit_size - offset));
-    Yn->lookup_table[lu_table_position] =
-        (Yn->lookup_table[lu_table_position] & (~mask_replace)) |
-        (Yn->last_generated & (mask_replace));
-    Yn_plus1->lookup_table[lu_table_position] =
-        (Yn_plus1->lookup_table[lu_table_position] & (mask_replace)) |
-        (Yn->last_generated & (~mask_replace));
+        ((*num_1) & mask_replace) | ((*num_2) >> (~mask_replace));
+    *num_1 =
+        ((*num_1) & (~mask_replace)) | (Yn->last_generated & (mask_replace));
+    *num_2 =
+        ((*num_2) & (mask_replace)) | (Yn->last_generated & (~mask_replace));
     return ret_val;
 }
 

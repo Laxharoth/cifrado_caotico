@@ -31,3 +31,7 @@ $(OBJDIR)/d_fn.o: fn.h fn.c
 	gcc -g -c fn.c -o $@
 $(OBJDIR)/d_ConfigStructure.o: ConfigStructure.h ConfigStructure.c
 	gcc -g -c ConfigStructure.c -o $@
+
+clean:
+	rm *.exe
+	rm $(OBJDIR)/*.o

@@ -7,8 +7,8 @@
 #define SAMPLE_SIZE 1
 #endif
 
-#define print_time(code)                                                    \
-    {                                                                       \
+#define time_exec(code)                                                     \
+    ({                                                                      \
         struct timespec start_0f915e730828c, end_0f915e730828c;             \
         double elapsed_0f915e730828c;                                       \
         double average_time_0f915e730828c = 0;                              \
@@ -23,8 +23,7 @@
                     1e9;                                                    \
             average_time_0f915e730828c += elapsed_0f915e730828c;            \
         }                                                                   \
-        printf("Tiempo de ejecucion: %.9f segundos\n",                      \
-               average_time_0f915e730828c / SAMPLE_SIZE);                   \
-    }
+        average_time_0f915e730828c;                                         \
+    })
 
 #endif /* TIME_MEASURE_H */

@@ -60,10 +60,11 @@ int main() {
         strcat(file_path, sufix);
         if (ON(bitarray, i)) {
             printf("%s:\n\t", file_path);
-            print_time({
+            const double time_exec = time_exec({
                 generator[i](buffer, &config);
                 cipher_data(dummy, buffer, config.file_size);
             });
+            printf("timepo de ejecucion : %0.9f s", time_exec);
 
 #ifndef MEASURE_TIME_ONLY
             printf("\tGuardando archivo.\n");

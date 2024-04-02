@@ -78,7 +78,7 @@ int main() {
 
     unsigned last_decipher = 0;
 
-    print_time(
+    double time_secs = time_exec(
 
         while (remaining) {
             const size_t sending_size = min(payload_size, remaining);
@@ -134,9 +134,10 @@ int main() {
 
             remaining -= sending_size;
             header->seq_number++;
-        })
+        });
+    printf("%0.9f\n", time_secs);
 
-        free(random_buffer);
+    free(random_buffer);
     fclose(stream);
 
     return 0;

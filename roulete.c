@@ -99,9 +99,8 @@ uint64_t random_select_coupled_chaotic_map_lookuptable_bitoffset(
         (roulete_config->epsilon & (roulete_config->H));
     // Actualiza la perturbacion
     roulete_config->H ^= Yn->last_generated;
-    *ref_roulete_position = Yn->last_generated & roulete_config->num_mapas_mask;
-    const uint64_t ret_val =
-        ((*num_1) & mask_replace) | ((*num_2) >> (~mask_replace));
+    *ref_roulete_position = (uint8_t)Yn->last_generated;
+    const uint64_t ret_val = ((*num_1) << offset) | ((*num_2) >> (64 - offset));
     *num_1 =
         ((*num_1) & (~mask_replace)) | (Yn->last_generated & (mask_replace));
     *num_2 =

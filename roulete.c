@@ -82,9 +82,9 @@ uint64_t random_select_coupled_chaotic_map_lookuptable_bitoffset(
     struct chaotic_lookup_table **roulete = roulete_config->roulete_cycle;
     uint64_t *table_position = &roulete_config->lu_table_position;
     // Obtiene lookup tables que se van a utilizar
-    struct chaotic_lookup_table *Yn = roulete[*ref_roulete_position];
+    struct chaotic_lookup_table *Yn = *(roulete + *ref_roulete_position);
     struct chaotic_lookup_table *Yn_plus1 =
-        roulete[((*ref_roulete_position) + 1) & roulete_config->num_mapas_mask];
+        *(roulete + *ref_roulete_position + 1);
     // Obtiene la posición del numero aleatorio
     const uint64_t lu_table_position =
         roulete_config->raw[(*table_position)] & roulete_config->lu_table_mask;
@@ -97,8 +97,8 @@ uint64_t random_select_coupled_chaotic_map_lookuptable_bitoffset(
     const uint64_t mask_replace = (~(0ull)) >> offset;
 
     // Coloca los numeros que se van a usar en punteros
-    uint64_t *const num_1 = &(Yn->lookup_table[lu_table_position]);
-    uint64_t *const num_2 = &(Yn_plus1->lookup_table[lu_table_position]);
+    uint64_t *const num_1 = Yn->lookup_table + lu_table_position;
+    uint64_t *const num_2 = Yn_plus1->lookup_table + lu_table_position;
 
     // Genera el proximo numero aleatorio
     Yn->last_generated =

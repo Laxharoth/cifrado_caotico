@@ -57,17 +57,21 @@ int main(int arc, char *argv[]) {
 
     double time_encrypt = time_exec(
         /* Encrypt the plaintext */
-        ciphertext_len = encrypt(plaintext, plaintext_size, aad, strlen(aad),
-                                 key, iv, ciphertext, tag););
+        ciphertext_len =
+            encrypt(plaintext, plaintext_size, (unsigned char *)aad,
+                    strlen((char *)aad), (unsigned char *)key,
+                    (unsigned char *)iv, ciphertext, tag););
 
     /* Mess with stuff */
     /* ciphertext[0] ^= 1; */
     /* tag[0] ^= 1; */
 
     /* Decrypt the ciphertext */
-    double time_decrypt = time_exec(
-        decryptedtext_len = decrypt(ciphertext, ciphertext_len, aad,
-                                    strlen(aad), tag, key, iv, decryptedtext););
+    double time_decrypt =
+        time_exec(decryptedtext_len =
+                      decrypt(ciphertext, ciphertext_len, (unsigned char *)aad,
+                              strlen((char *)aad), tag, (unsigned char *)key,
+                              (unsigned char *)iv, decryptedtext););
 
     if (decryptedtext_len < 0) {
         /* Verify error */
@@ -93,7 +97,7 @@ void handleErrors(void) {
     unsigned long errCode;
 
     printf("An error occurred\n");
-    while (errCode = ERR_get_error()) {
+    while ((errCode = ERR_get_error())) {
         char *err = ERR_error_string(errCode, NULL);
         printf("%s\n", err);
     }

@@ -9,7 +9,7 @@ typedef struct rtp_header {
     uint16_t contribution : 4;  // Contribution bit
     uint16_t marker : 1;        // Marker bit
     uint16_t payload_type : 7;  // Payload type
-    uint16_t seq_number;        // Sequence number
+    uint32_t seq_number;        // Sequence number
     uint32_t timestamp;         // Timestamp
     uint32_t ssrc;              // Synchronization source
 } rtp_header_t;

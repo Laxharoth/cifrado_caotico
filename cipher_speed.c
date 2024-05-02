@@ -28,6 +28,9 @@ int main() {
     const size_t payload_size_64 = payload_size / sizeof(uint64_t);
     const size_t required_random_numbers = payload_size_64 * 2 + 1;
     const size_t header_size = sizeof(struct rtp_header);
+    const uint8_t index_mask = 0b111111;
+    // const size_t stream_size = 1073741824;  // 1 GB
+    const size_t stream_size = 1048576;  // 1 MB
 
     // Asegurarse de que tiene un tamaño compatible
     if (payload_size % sizeof(uint64_t) != 0) {
@@ -42,15 +45,12 @@ int main() {
         152, 202, 165, 166, 252, 57,  200, 30,  168, 7,   41,  3,  90,
         214, 228, 220, 39,  58,  233, 218, 116, 84,  28,  115, 34, 168,
         111, 107, 75,  137, 208, 133, 130, 98,  24,  183, 231, 99};
-    const uint8_t index_mask = 0b111111;
-    // Cargar data para enviar
-    const size_t stream_size = 1048576;  // 1 MB
     uint8_t *const stream_start = malloc(stream_size);
 
     // Cargar generador de números aleatorios
     Configuracion config;
     readConfigFile("config.txt", &config);
-    // sobreescribir el tamaño del archivo por el numero deseado de numeros
+    // sobreescribir el tamaño del archivo por el numero deseado de números
     // aleatorios
     const size_t precalculated_packets = 32;
     const size_t random_buffer_size_64 =
@@ -111,11 +111,12 @@ int main() {
                         &roulete_config);
             }
             last_decipher = header->seq_number;
+            header->seq_number++;
             //
             stream += sending_size;
             remaining -= sending_size;
         });
-    printf("Velocidad de cifrado: %0.9f Gbps\n",
+    printf("Velocidad de cifrado: %0.4f Gbps\n",
            stream_size * 8 / time_secs / 1e9);
 
     free(random_buffer);

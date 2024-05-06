@@ -3,6 +3,7 @@
 #include <stdlib.h>
 #include <string.h>
 
+#define SAMPLE_SIZE 1000
 #include "time_measure.h"
 
 #define AES_BLOCK_SIZE 16

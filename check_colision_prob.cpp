@@ -16,7 +16,7 @@
 #include "roulete.c"
 #include "roulete.h"
 
-#define TIME_SECONDS 30ULL
+#define TIME_SECONDS 36000ULL
 
 int main(int argc, char **argv) {
     MPI_Init(&argc, &argv);
@@ -70,7 +70,7 @@ int main(int argc, char **argv) {
         double colition_probability =
             colition_counter[0] / (double)colition_counter[1];
         printf("colition_probability: %lu / %lu = %0.4f\n", colition_counter[0], colition_counter[1], colition_probability);
-
+        zey::master_end_slaves(MPI_COMM_WORLD);
     } else {
         uint64_t *const stream_dirt = (uint64_t *)malloc(stream_size);
         auto labor = [&](uint64_t *task) {

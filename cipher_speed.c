@@ -99,16 +99,18 @@ int main() {
                    aux_renyi_r, aux_renyi_j);
             // Refill cipher stream
             const size_t packets_to_refill = header->seq_number - last_decipher;
-            const size_t initial_index =
-                (last_decipher % precalculated_packets) *
-                required_random_numbers;
-            for (uint64_t i = 0;
-                 i < packets_to_refill * required_random_numbers; ++i) {
-                const uint64_t cipher_stream_current =
-                    (initial_index + i) % random_buffer_size_64;
-                random_buffer[cipher_stream_current] =
-                    random_select_coupled_chaotic_map_lookuptable(
-                        &roulete_config);
+            for (uint64_t pack = 0; pack < packets_to_refill; ++pack) {
+                const size_t initial_index =
+                    ((last_decipher + pack) % precalculated_packets) *
+                    required_random_numbers;
+                const uint64_t *end =
+                    random_buffer + initial_index + required_random_numbers;
+                for (uint64_t *start = random_buffer + initial_index;
+                     start < end; ++start) {
+                    *start =
+                        random_select_coupled_chaotic_map_lookuptable_bitoffset(
+                            &roulete_config);
+                }
             }
             last_decipher = header->seq_number;
             header->seq_number++;

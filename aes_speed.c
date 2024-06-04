@@ -34,6 +34,7 @@ int main(int arc, char *argv[]) {
     static const unsigned char iv[] = "0123456789012345";
 
     /* Message to be encrypted */
+    // size_t plaintext_size = 1073741824;
     size_t plaintext_size = 1048576;
     unsigned char *plaintext = malloc(plaintext_size);
 
@@ -62,10 +63,6 @@ int main(int arc, char *argv[]) {
                     strlen((char *)aad), (unsigned char *)key,
                     (unsigned char *)iv, ciphertext, tag););
 
-    /* Mess with stuff */
-    /* ciphertext[0] ^= 1; */
-    /* tag[0] ^= 1; */
-
     /* Decrypt the ciphertext */
     double time_decrypt =
         time_exec(decryptedtext_len =
@@ -76,9 +73,6 @@ int main(int arc, char *argv[]) {
     if (decryptedtext_len < 0) {
         /* Verify error */
         printf("Decrypted text failed to verify\n");
-    } else {
-        /* Add a NULL terminator. We are expecting printable text */
-        decryptedtext[decryptedtext_len] = '\0';
     }
 
     /* Remove error strings */
@@ -88,7 +82,7 @@ int main(int arc, char *argv[]) {
 
     printf("Cipher time: %0.4fGbps\n", plaintext_size * 8 / time_encrypt / 1e9);
     printf("DeCipher time: %0.4fGbps\n",
-           ciphertext_len * 8 / time_decrypt / 1e9);
+           plaintext_size * 8 / time_decrypt / 1e9);
 
     return 0;
 }

@@ -7,11 +7,12 @@ void initilizale_roulete(const Configuracion *const config,
     const uint64_t table_mask = numeroMapas - 1;
     const uint64_t raw = (numeroMapas * config->n) - 1;
     // reservar memoria para las tablas
-    roulete_config->raw = malloc(numeroMapas * config->n * sizeof(uint64_t));
-    roulete_config->roulete =
-        malloc(sizeof(struct chaotic_lookup_table) * numeroMapas);
-    roulete_config->roulete_cycle =
-        malloc(sizeof(struct chaotic_lookup_table *) * 257);
+    roulete_config->raw =
+        (uint8_t *)malloc(numeroMapas * config->n * sizeof(uint64_t));
+    roulete_config->roulete = (struct chaotic_lookup_table *)malloc(
+        sizeof(struct chaotic_lookup_table) * numeroMapas);
+    roulete_config->roulete_cycle = (struct chaotic_lookup_table **)malloc(
+        sizeof(struct chaotic_lookup_table *) * 257);
     // inicializa atributos de la configuración de ruleta
     roulete_config->num_mapas_mask = num_mapas_mask;
     roulete_config->lu_table_mask = table_mask;
@@ -53,7 +54,7 @@ void delete_roulete(struct rouleteConfig *config) {
     free(config->roulete_cycle);
 }
 
-uint64_t random_select_coupled_chaotic_map_lookuptable(
+inline uint64_t random_select_coupled_chaotic_map_lookuptable(
     struct rouleteConfig *roulete_config) {
     uint8_t *ref_roulete_position = &roulete_config->roulette_selector;
     struct chaotic_lookup_table **roulete = roulete_config->roulete_cycle;
@@ -127,7 +128,8 @@ void roulete_generator(uint64_t *const buffer, const Configuracion *config,
             (chunk_size < remaining_bytes) ? chunk_size : remaining_bytes;
         const uint64_t generated =
             // random_select_coupled_chaotic_map_lookuptable(rouleteConfig);
-            random_select_coupled_chaotic_map_lookuptable(rouleteConfig);
+            random_select_coupled_chaotic_map_lookuptable_bitoffset(
+                rouleteConfig);
         memcpy(ptr_buffer, &generated, chunk_bytes);
         ptr_buffer += chunk_bytes;
         remaining_bytes -= chunk_bytes;

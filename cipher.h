@@ -9,12 +9,12 @@
 typedef uint64_t (*generator)();
 
 void cipher(uint64_t *plain_text, uint64_t *const cipher_stream,
-            uint64_t length, uint64_t cipher_stream_size,
+            uint64_t plain_length, uint64_t cipher_stream_size,
             uint64_t cipher_stream_index, uint8_t *hash_ref,
             uint64_t aux_renyi_r, uint64_t aux_renyi_j);
 
 void decipher(uint64_t *cipher_text, uint64_t *const cipher_stream,
-              uint64_t length, uint64_t cipher_stream_size,
+              uint64_t cipher_length, uint64_t cipher_stream_size,
               uint64_t cipher_stream_index, uint8_t *hash_ref,
               uint64_t aux_renyi_r, uint64_t aux_renyi_j);
 

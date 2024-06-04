@@ -1,14 +1,14 @@
 #include "cipher.h"
 
-inline void cipher(uint64_t *plain_text, uint64_t *const cipher_stream,
-                   uint64_t length, uint64_t cipher_stream_size,
-                   uint64_t cipher_stream_index, uint8_t *hash_ref,
-                   uint64_t aux_renyi_r, uint64_t aux_renyi_j) {
+void cipher(uint64_t *plain_text, uint64_t *const cipher_stream,
+            uint64_t plain_length, uint64_t cipher_stream_size,
+            uint64_t cipher_stream_index, uint8_t *hash_ref,
+            uint64_t aux_renyi_r, uint64_t aux_renyi_j) {
     uint64_t sum = 0;
     uint64_t iter;
     uint64_t cipher_text_ant = *cipher_stream;
     uint8_t *sum_bytes = (uint8_t *)&sum;
-    for (iter = 0; iter < length; ++iter, ++plain_text) {
+    for (iter = 0; iter < plain_length; ++iter, ++plain_text) {
         const uint64_t cipher_stream_current_index =
             (cipher_stream_index + iter * 2 + 1) % cipher_stream_size;
         const uint64_t cipher_stream_current_index_next =
@@ -28,14 +28,14 @@ inline void cipher(uint64_t *plain_text, uint64_t *const cipher_stream,
 }
 
 void decipher(uint64_t *cipher_text, uint64_t *const cipher_stream,
-              uint64_t length, uint64_t cipher_stream_size,
+              uint64_t cipher_length, uint64_t cipher_stream_size,
               uint64_t cipher_stream_index, uint8_t *hash_ref,
               uint64_t aux_renyi_r, uint64_t aux_renyi_j) {
     uint64_t sum = 0;
     uint64_t iter;
     uint64_t cipher_text_ant = *cipher_stream;
     uint8_t *sum_bytes = (uint8_t *)&sum;
-    for (iter = 0; iter < length; ++iter, ++cipher_text) {
+    for (iter = 0; iter < cipher_length; ++iter, ++cipher_text) {
         const uint64_t cipher_stream_current_index =
             (cipher_stream_index + iter * 2 + 1) % cipher_stream_size;
         const uint64_t cipher_stream_current_index_next =

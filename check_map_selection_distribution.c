@@ -6,7 +6,10 @@
 #include "roulete.c"
 #include "roulete.h"
 
+// NUMERO DE MAPAS SE PUEDE PASAR COMO ARGUMENTO DEL PROGRAMA
+
 int main(int argc, char const *argv[]) {
+    const size_t hidden_iterations = (size_t)3e3;
     const size_t total_iterations = (size_t)5e3;
     const double significance_level = 0.05;
     uint64_t *seed;
@@ -32,7 +35,8 @@ int main(int argc, char const *argv[]) {
     selection_distribution = malloc(sizeof(double) * config.num_maps);
     memset(selection_distribution, 0, sizeof(double) * config.num_maps);
 
-    for (i = 0; i < 2000; i++) {
+    // do some iterations without printing the result
+    for (i = 0; i < hidden_iterations; i++) {
         selection_distribution[roulete_config.roulette_selector %
                                config.num_maps]++;
         random_select_coupled_chaotic_map_lookuptable(&roulete_config);

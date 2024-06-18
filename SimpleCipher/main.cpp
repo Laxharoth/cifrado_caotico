@@ -10,13 +10,11 @@
 #include <vector>
 
 #include "cipher.h"
+#include "pgm_image.cpp"
+#include "pgm_image.h"
 #include "random_generator.h"
 
 #define NUM_MAPS 4
-
-struct PGMImage;
-PGMImage read_pgm(const std::string& filename);
-void write_pgm(const std::string& filename, const PGMImage& image);
 
 int main(int argc, char const* argv[]) {
     // get parameters for the program
@@ -74,55 +72,4 @@ int main(int argc, char const* argv[]) {
     write_pgm(output_file, img);
 
     return 0;
-}
-
-struct PGMImage {
-    int width;
-    int height;
-    int max_val;
-    std::vector<uint8_t> pixels;
-};
-
-PGMImage read_pgm(const std::string& filename) {
-    std::ifstream file(filename, std::ios::binary);
-    if (!file) {
-        throw std::runtime_error("No se pudo abrir el archivo: " + filename);
-    }
-
-    std::string format;
-    file >> format;
-    if (format != "P5") {
-        throw std::runtime_error("Formato PGM no soportado: " + format);
-    }
-
-    PGMImage image;
-    file >> image.width >> image.height >> image.max_val;
-
-    // Leer un solo carácter (salto de línea) después del encabezado
-    file.get();
-
-    image.pixels.resize(image.width * image.height);
-    for (int i = 0; i < image.width * image.height; ++i) {
-        image.pixels[i] = file.get();
-    }
-
-    file.close();
-    return image;
-}
-
-void write_pgm(const std::string& filename, const PGMImage& image) {
-    std::ofstream file(filename, std::ios::binary);
-    if (!file) {
-        throw std::runtime_error("No se pudo escribir el archivo: " + filename);
-    }
-
-    file << "P5\n"
-         << image.width << " " << image.height << "\n"
-         << image.max_val << "\n";
-
-    for (int pixel : image.pixels) {
-        file.put(pixel);
-    }
-
-    file.close();
 }

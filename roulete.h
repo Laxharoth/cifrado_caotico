@@ -19,7 +19,6 @@ struct rouleteConfig {
     struct chaotic_lookup_table *roulete;
     struct chaotic_lookup_table **roulete_cycle;
     uint8_t *raw;
-    uint64_t num_mapas_mask;
     uint64_t lu_table_mask;
     uint64_t lu_raw_mask;
     uint64_t epsilon;
@@ -27,9 +26,10 @@ struct rouleteConfig {
     uint64_t lu_table_position;
     uint64_t H;
 };
-
+void generate_seed(const Configuracion *const config, uint64_t *const seed);
 void initilizale_roulete(const Configuracion *const config,
-                         struct rouleteConfig *roulete_config);
+                         struct rouleteConfig *roulete_config,
+                         const uint64_t *const seed);
 void delete_roulete(struct rouleteConfig *config);
 uint64_t random_select_coupled_chaotic_map_lookuptable(
     struct rouleteConfig *roulete_config);

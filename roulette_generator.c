@@ -28,7 +28,10 @@ int main() {
     const size_t precalculated_packets = 32;
     uint64_t *const random_buffer = malloc(config.file_size);
     struct rouleteConfig roulete_config;
-    initilizale_roulete(&config, &roulete_config);
+    uint64_t *seed = malloc(config.num_maps * sizeof(uint64_t) * 3);
+    memset(seed, 0, config.num_maps * sizeof(uint64_t) * 3);
+    generate_seed(&config, seed);
+    initilizale_roulete(&config, &roulete_config, seed);
     roulete_generator(random_buffer, &config, &roulete_config);
 
     FILE *out = fopen("random_datar.bin", "wb");

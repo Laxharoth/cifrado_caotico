@@ -31,8 +31,8 @@ void initilizale_roulete(const Configuracion *const config,
         Xn[i * config->n] = rand();
         Xn[i * config->n] = (Xn[i * config->n] << 32) | rand();
         parametros[i] = rand();
-        parametros[i] = (parametros[i] << 32) | rand();
-        parametros_l[i] = ((rand() + 5) & 63);
+        parametros[i] = (Xn[i] << 32) | rand();
+        parametros_l[i] = (rand() & 63) + 5;
         for (size_t j = 1; j < config->n; ++j) {
             Xn[i * config->n + j] = RenyiMap(Xn[i * config->n + j - 1],
                                              parametros[i], parametros_l[i]);
@@ -54,7 +54,7 @@ void delete_roulete(struct rouleteConfig *config) {
     free(config->roulete_cycle);
 }
 
-uint64_t random_select_coupled_chaotic_map_lookuptable(
+inline uint64_t random_select_coupled_chaotic_map_lookuptable(
     struct rouleteConfig *roulete_config) {
     uint8_t *ref_roulete_position = &roulete_config->roulette_selector;
     struct chaotic_lookup_table **roulete = roulete_config->roulete_cycle;
@@ -108,17 +108,13 @@ uint64_t random_select_coupled_chaotic_map_lookuptable_bitoffset(
     // Actualiza la perturbacion
     roulete_config->H ^= Yn->last_generated;
     *ref_roulete_position = (uint8_t)Yn->last_generated;
-    const uint64_t ret_val =
-        ((*num_1) & mask_replace) | ((*num_2) & (~mask_replace));
+    const uint64_t ret_val = ((*num_1) << offset) | ((*num_2) >> (64 - offset));
     *num_1 =
         ((*num_1) & (~mask_replace)) | (Yn->last_generated & (mask_replace));
     *num_2 =
         ((*num_2) & (mask_replace)) | (Yn->last_generated & (~mask_replace));
     return ret_val;
 }
-
-uint64_t (*global_generator)(struct rouleteConfig *roulete_config) =
-    random_select_coupled_chaotic_map_lookuptable_bitoffset;
 
 void roulete_generator(uint64_t *const buffer, const Configuracion *config,
                        struct rouleteConfig *rouleteConfig) {
@@ -130,9 +126,10 @@ void roulete_generator(uint64_t *const buffer, const Configuracion *config,
     while (remaining_bytes > 0) {
         size_t chunk_bytes =
             (chunk_size < remaining_bytes) ? chunk_size : remaining_bytes;
-        const uint64_t generated = global_generator(rouleteConfig);
-        // random_select_coupled_chaotic_map_lookuptable_bitoffset(
-        //     rouleteConfig);
+        const uint64_t generated =
+            // random_select_coupled_chaotic_map_lookuptable(rouleteConfig);
+            random_select_coupled_chaotic_map_lookuptable_bitoffset(
+                rouleteConfig);
         memcpy(ptr_buffer, &generated, chunk_bytes);
         ptr_buffer += chunk_bytes;
         remaining_bytes -= chunk_bytes;

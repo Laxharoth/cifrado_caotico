@@ -12,6 +12,10 @@ void SET_OFF(char *bitarray, size_t bit) {
     bitarray[bit >> 3] &= ~(1 << (bit & 7));
 }
 
+void TOGGLE(char *bitarray, size_t bit) {
+    bitarray[bit >> 3] ^= (1 << (bit & 7));
+}
+
 void readBitArrayFromFile(const char *filename, char *bitarray,
                           size_t max_size) {
     FILE *file = fopen(filename, "r");

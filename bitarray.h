@@ -9,6 +9,8 @@ void SET_ON(char *bitarray, size_t bit);
 
 void SET_OFF(char *bitarray, size_t bit);
 
+void TOGGLE(char *bitarray, size_t bit);
+
 void readBitArrayFromFile(const char *filename, char *bitarray,
                           size_t max_size);
 
